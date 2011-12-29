@@ -24,9 +24,9 @@ def _remote_drush(site, args):
     if uri == 'default':
         uri = ''
         
-    cmd = "drush --root='%s' --uri='http://%s/%s' %s" % (site.platform.path,
-                                                         site.platform.host,
-                                                         uri, args)
+    cmd = "drush --root='%s' --uri='http://%s/%s' %s" % (site.platform.path.strip(),
+                                                             site.platform.host.strip(),
+                                                             uri.strip(), args)
     return _remote_ssh(cmd)
 
 def verify(site):

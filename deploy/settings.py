@@ -144,7 +144,7 @@ LOGGING = {
             'class': 'logging.handlers.SysLogHandler',
             'formatter': 'dateTime',
             'facility': logging.handlers.SysLogHandler.LOG_LOCAL6,
-            #'address': '/dev/log',
+            # 'address': '/dev/log',
             },
 
         'console': {
