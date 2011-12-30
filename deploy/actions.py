@@ -1,7 +1,10 @@
 from util import parse_vget
-import subprocess
 import logging
 import os.path
+import shutil
+import subprocess
+import tempfile
+
 
 logger = logging.getLogger(__name__)
 
@@ -51,42 +54,116 @@ def verify(site):
         site.save()
         
 
+def enable(site):
+    (status, out, err) = _remote_drush(site, "vset maintenance_mode 0")
+    return status == 0
+
+def disable(site):
+    (status, out, err) = _remote_drush(site, "vset --yes maintenance_mode 1")
+    return status == 0
+
+
+def backup(site):
+
+    return True
+
+
+def migrate(site, new_platform):
+
+    dest_site = site
+    dest_site.platform = new_platform
+
+    backup_result = backup(site)
+
+    if not backup_result:
+        logger.info('migrate: backup didn\'t succeed, bail')
+        return False
+
+    if not is_clean(dest_site):
+        logger.info('migrate: destination site not clean, bail')
+        return False
+
+    #create destination site paths.
+    result = _create_site_dirs(dest_site)
+
+    #copy site temporary location.
+    (status, out, err) = _remote_ssh('[ -L %s ]' % (site.site_symlink(),))
+
+    pre_stage = tempfile.mkdtemp()
+    logger.info('migrate: pre_stage area is %d. ' % (pre_stage,))
+
+    #rsync files to pre_stage
+    rsync_cmd = 'rsync --archive -p %s:%s %s' % (site.platform.host,
+                                                 site.site_dir(),
+                                                 pre_stage)
+    logger.info('migrate: rsync command: %s' %(rsync_cmd,))
+
+    
+    shutil.rmtree( pre_stage )
+
 
 def is_clean(site):
     """ return true of if there is no trace of the site. this includes symlink, database, sites directory"""
 
-    (status, out, err) = _remote_ssh('[ -L %s ]' % (site.site_symlink(),))
-    if status == 0:
-        logger.info("create: sitedir: %s is symlink" %(site.site_dir(),))
-    else:
-        logger.info("create: sitedir: %s is not symlink" %(site.site_dir(),))
+    clean = True
+    message = ''
     
-    pass
+    (status, out, err) = _remote_ssh('[ -L %s ]' % (site.site_symlink(),))
+    logger.info("is_clean: site_symlink: %d" % (status,)) 
+    clean = clean and status
+
+    (status, out, err) = _remote_ssh('[ -d %s ]' % (site.site_dir(),))
+    logger.info("is_clean: site_dir: %d" % (status,) )
+    clean = clean and status
+
+    (status, out, err) = _remote_ssh('mysql mysql -e "use %s;"' % (site.database,))
+    logger.info("is_clean: mysql: %d" % (status,) )
+    clean = clean and status
+
+    logger.info("is_clean: site is clean: %d" % (clean,) )
+    return clean
+
+
+def _create_site_dirs(site):
+    #link
+    _remote_ssh('/bin/ln %s %s' % (site.platform.path, site.site_symlink()))
+    _remote_ssh('mkdir %s' % (site.site_dir(), ))
+    
+    for directory in site.site_files_dir():
+        _remote_ssh('mkdir %s' % (directory, ))
+        _remote_ssh('chmod 2775 %s' % (directory, ))
+        
+    return True
+
+def _create_site_database(site):
+    (status, out, err) = _remote_ssh('mysql -e "create database %s;"' % (site.database,))
+    return status == 0
+    
     
 def create(site, force=False):
     #create db
     logger.info("create: enter")
-    
-    (status, out, err) = _remote_ssh('mysql -e "create database %s;"' % (site.database,))
-    if status == 0:
-        
-        logger.info("create: sitedir: %s" %(site.site_dir(),))
-        
-        #link
-        _remote_ssh('/bin/ln %s %s' % (site.platform.path, site.site_symlink()))
-        _remote_ssh('mkdir %s' % (site.site_dir(), ))
 
-        for directory in site.site_files_dir():
-            _remote_ssh('mkdir %s' % (directory, ))
-            _remote_ssh('chmod 2775 %s' % (directory, ))
+    if not is_clean(site):
+        return False
+
+    if _create_site_database(site):
         
+        logger.info("create: sitedir: %s" % (site.site_dir(),))
+        _create_site_dirs(site)
+
+        _remote_drush(site, "site-install --site-name='%s' --sites-subdir=%s %s"
+                      %( site.long_name,
+                         self.platform.host + '.' +  self.short_name,
+                         site.profile) ) 
         
+        return True
 
         _remote_ssh('rm -Rf %s' % (site.site_dir(),))
         _remote_ssh('unlink %s' % (site.site_symlink(),))
         _remote_ssh('mysql -e "drop database %s;"' % (site.database,))
     else:
-        logger.error('create database failed %s' %(out,))
+        logger.error('create database failed %s' % (out,))
         return False
 
     
