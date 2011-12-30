@@ -1,5 +1,6 @@
 from django.db import models
 from actions import verify
+import os.path
 
 PLATFORM_CHOICES = (
     ('pro','production'),
@@ -25,20 +26,36 @@ class Platform(models.Model):
 
 class Site(models.Model):
 
-    long_name = models.CharField(max_length=256, blank=True, help_text='this is the site name' )
-    short_name = models.CharField(max_length=32, null=False, blank=False, help_text='this is the site name, e.g.: foo to create the site www.example.org/foo')
-    contact_email = models.CharField(max_length=64,help_text='this populates the site_admin field of the site')
-    staff_email = models.CharField(max_length=64)
-    pre_production = models.BooleanField(default=True, help_text='Is this a site that has never been deployed to production.')
+    long_name        = models.CharField(max_length=256, blank=True, help_text='this is the site name' )
+    short_name       = models.CharField(max_length=32, null=False, blank=False, help_text='this is the site name, e.g.: foo to create the site www.example.org/foo')
+    platform         = models.ForeignKey(Platform, help_text='Which platform should this site be created.')
+    database         = models.CharField(max_length=32, null=True)
+    contact_email    = models.CharField(max_length=64,help_text='this populates the site_admin field of the site')
+    staff_email      = models.CharField(max_length=64)
+
+    pre_production   = models.BooleanField(default=True, help_text='Is this a site that has never been deployed to production.')
     maintenance_mode = models.BooleanField()
-    platform =  models.ForeignKey(Platform, help_text='Which platform should this site be created.')
 
     class Meta():
         unique_together = ("short_name", "platform")            
 
     def __unicode__(self):
-        return u"<Site %s/%s>" %( self.platform.host, self.short_name )
+        return u"http://%s/%s" %( self.platform.host, self.short_name )
 
-    def action_verify(self):
-        verify(self)
+    def site_dir(self):
+        return os.path.join(self.platform.path, 'sites', self.platform.host + '.' +  self.short_name)
 
+    def site_files_dir(self):
+        """ returns a list of paths in the files directory. They don't always get created properly even if the parent directory has appropriate permissions"""
+        d = ['', 'styles', 'css','ctools','xmlsitemap',
+             'styles/large',
+             'styles/pdx_collage_large',
+             'styles/pdx_collage_medium',
+             'styles/pdx_collage_small',
+             'styles/pdx_school_home',
+             'styles/square_thumbnail',
+
+        return [os.path.join( self.site_dir(), i ) for i in d]s
+
+    def site_symlink(self):
+        return os.path.join(self.platform.path, self.short_name)
