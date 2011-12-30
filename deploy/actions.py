@@ -1,6 +1,7 @@
 from util import parse_vget
 import subprocess
 import logging
+import os.path
 
 logger = logging.getLogger(__name__)
 
@@ -49,16 +50,47 @@ def verify(site):
         site.long_name = parse_vget('site_name', out)
         site.save()
         
+
+
+def is_clean(site):
+    """ return true of if there is no trace of the site. this includes symlink, database, sites directory"""
+
+    (status, out, err) = _remote_ssh('[ -L %s ]' % (site.site_symlink(),))
+    if status == 0:
+        logger.info("create: sitedir: %s is symlink" %(site.site_dir(),))
+    else:
+        logger.info("create: sitedir: %s is not symlink" %(site.site_dir(),))
     
+    pass
     
 def create(site, force=False):
     #create db
     logger.info("create: enter")
     
     (status, out, err) = _remote_ssh('mysql -e "create database %s;"' % (site.database,))
+    if status == 0:
+        
+        logger.info("create: sitedir: %s" %(site.site_dir(),))
+        
+        #link
+        _remote_ssh('/bin/ln %s %s' % (site.platform.path, site.site_symlink()))
+        _remote_ssh('mkdir %s' % (site.site_dir(), ))
 
+        for directory in site.site_files_dir():
+            _remote_ssh('mkdir %s' % (directory, ))
+            _remote_ssh('chmod 2775 %s' % (directory, ))
+        
+        
 
-    drush --uri=http://localhost/foo site-install --sites-subdir=localhost.foo  --site-name=foo psu_primary 
+        _remote_ssh('rm -Rf %s' % (site.site_dir(),))
+        _remote_ssh('unlink %s' % (site.site_symlink(),))
+        _remote_ssh('mysql -e "drop database %s;"' % (site.database,))
+    else:
+        logger.error('create database failed %s' %(out,))
+        return False
+
+    
+    #drush --uri=http://localhost/foo site-install --sites-subdir=localhost.foo  --site-name=foo psu_primary 
 
     logger.info("create: leave")
     
