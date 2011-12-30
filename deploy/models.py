@@ -53,9 +53,9 @@ class Site(models.Model):
              'styles/pdx_collage_medium',
              'styles/pdx_collage_small',
              'styles/pdx_school_home',
-             'styles/square_thumbnail',
+             'styles/square_thumbnail']
 
-        return [os.path.join( self.site_dir(), i ) for i in d]s
+        return [ os.path.join( self.site_dir(), i ) for i in d ]
 
     def site_symlink(self):
         return os.path.join(self.platform.path, self.short_name)
