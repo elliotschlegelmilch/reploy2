@@ -8,12 +8,14 @@ import tempfile
 
 logger = logging.getLogger(__name__)
 
-def _remote_ssh(cmd):
+def _remote_ssh(platform, cmd):
     """ returns tuple of (exit status, stdout, sdterr) """
     logger.info("_remote_ssh: enter")
-    logger.info("_remote_ssh: %s" %(cmd,) )
-    process = subprocess.Popen(cmd,
-                               shell=True,
+
+    remote_cmd = ['ssh', platform.canonical_host, cmd]
+    logger.info("_remote_ssh: %s" % (' '.join(remote_cmd),) )
+
+    process = subprocess.Popen(remote_cmd,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT)
     output,stderr = process.communicate()
@@ -31,7 +33,12 @@ def _remote_drush(site, args):
     cmd = "drush --root='%s' --uri='http://%s/%s' %s" % (site.platform.path.strip(),
                                                              site.platform.host.strip(),
                                                              uri.strip(), args)
-    return _remote_ssh(cmd)
+    return _remote_ssh(site.platform, cmd)
+
+def _rsync_pull(platform, remote, local):
+    pass
+def _rsync_push(platform, local, remote):
+    pass
 
 def verify(site):
     (status, out, err) = _remote_drush(site, "vget maintenance_mode")
@@ -87,7 +94,7 @@ def migrate(site, new_platform):
     result = _create_site_dirs(dest_site)
 
     #copy site temporary location.
-    (status, out, err) = _remote_ssh('[ -L %s ]' % (site.site_symlink(),))
+    (status, out, err) = _remote_ssh(site.platform, '[ -L %s ]' % (site.site_symlink(),))
 
     pre_stage = tempfile.mkdtemp()
     logger.info('migrate: pre_stage area is %d. ' % (pre_stage,))
@@ -108,15 +115,15 @@ def is_clean(site):
     clean = True
     message = ''
     
-    (status, out, err) = _remote_ssh('[ -L %s ]' % (site.site_symlink(),))
+    (status, out, err) = _remote_ssh(site.platform, '[ -L %s ]' % (site.site_symlink(),))
     logger.info("is_clean: site_symlink: %d" % (status,)) 
     clean = clean and status
 
-    (status, out, err) = _remote_ssh('[ -d %s ]' % (site.site_dir(),))
+    (status, out, err) = _remote_ssh(site.platform, '[ -d %s ]' % (site.site_dir(),))
     logger.info("is_clean: site_dir: %d" % (status,) )
     clean = clean and status
 
-    (status, out, err) = _remote_ssh('mysql mysql -e "use %s;"' % (site.database,))
+    (status, out, err) = _remote_ssh(site.platform, 'mysql mysql -e "use %s;"' % (site.database,))
     logger.info("is_clean: mysql: %d" % (status,) )
     clean = clean and status
 
@@ -126,17 +133,17 @@ def is_clean(site):
 
 def _create_site_dirs(site):
     #link
-    _remote_ssh('/bin/ln %s %s' % (site.platform.path, site.site_symlink()))
-    _remote_ssh('mkdir %s' % (site.site_dir(), ))
+    _remote_ssh(site.platform, '/bin/ln %s %s' % (site.platform.path, site.site_symlink()))
+    _remote_ssh(site.platform, 'mkdir %s' % (site.site_dir(), ))
     
     for directory in site.site_files_dir():
-        _remote_ssh('mkdir %s' % (directory, ))
-        _remote_ssh('chmod 2775 %s' % (directory, ))
+        _remote_ssh(site.platform, 'mkdir %s' % (directory, ))
+        _remote_ssh(site.platform, 'chmod 2775 %s' % (directory, ))
         
     return True
 
 def _create_site_database(site):
-    (status, out, err) = _remote_ssh('mysql -e "create database %s;"' % (site.database,))
+    (status, out, err) = _remote_ssh(site.platform, 'mysql -e "create database %s;"' % (site.database,))
     return status == 0
     
     
@@ -159,9 +166,9 @@ def create(site, force=False):
         
         return True
 
-        _remote_ssh('rm -Rf %s' % (site.site_dir(),))
-        _remote_ssh('unlink %s' % (site.site_symlink(),))
-        _remote_ssh('mysql -e "drop database %s;"' % (site.database,))
+        _remote_ssh(site.platform, 'rm -Rf %s' % (site.site_dir(),))
+        _remote_ssh(site.platform, 'unlink %s' % (site.site_symlink(),))
+        _remote_ssh(site.platform, 'mysql -e "drop database %s;"' % (site.database,))
     else:
         logger.error('create database failed %s' % (out,))
         return False
