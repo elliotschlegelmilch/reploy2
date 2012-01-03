@@ -1,4 +1,5 @@
 from util import parse_vget
+import datetime
 import logging
 import os.path
 import shutil
@@ -129,8 +130,20 @@ def backup(site):
     """Returns a path to a backup or false if it doesn't succeed."""
     path = tempfile.mkdtemp(prefix='sdt',dir='/tmp/x')
 
-    _backup_db(site,path)
-    _backup_files(site,path)
+    logger.info('backup: temporary_path=%s' % (path,))
+    db = _backup_db(site,path)
+    fs = _backup_files(site,path)
+
+    site_name = site.platform.host + '.' + site.short_name
+
+    
+    friendly_backup_path = os.path.join('/tmp', site_name + '-' + datetime.datetime.now().strftime('%Y%m%d.%H%M%S'))
+    logger.info('backup: destination_path=%s' %(friendly_backup_path,))
+    
+    #shutil.rmtree( pre_stage )
+    #move temporary path to a better name.
+
+    
     return True
 
 
@@ -170,7 +183,7 @@ def migrate(site, new_platform):
 
 def is_clean(site):
     """ return true of if there is no trace of the site. this includes symlink, database, sites directory"""
-
+    #TODO: handle default 
     clean = True
     message = ''
     
