@@ -29,12 +29,17 @@ class Site(models.Model):
     long_name        = models.CharField(max_length=256, blank=True, help_text='this is the site name' )
     short_name       = models.CharField(max_length=32, null=False, blank=False, help_text='this is the site name, e.g.: foo to create the site www.example.org/foo')
     platform         = models.ForeignKey(Platform, help_text='Which platform should this site be created.')
-    database         = models.CharField(max_length=32, null=True)
-    contact_email    = models.CharField(max_length=64,help_text='this populates the site_admin field of the site')
+    database         = models.CharField(max_length=32, null=False, blank=True)
+    contact_email    = models.CharField(max_length=64, help_text='this populates the site_admin field of the site')
     staff_email      = models.CharField(max_length=64)
 
     pre_production   = models.BooleanField(default=True, help_text='Is this a site that has never been deployed to production.')
     maintenance_mode = models.BooleanField()
+
+    def save(self, *args, **kwargs):
+        if self.database == '':
+            self.database = self.short_name
+        super(Site,self).save(*args, **kwargs)
 
     class Meta():
         unique_together = ("short_name", "platform")            

@@ -36,9 +36,27 @@ def _remote_drush(site, args):
     return _remote_ssh(site.platform, cmd)
 
 def _rsync_pull(platform, remote, local):
-    pass
+    path = "%s:%s" % (platform.canonical_host, remote)
+    cmd = ['rsync','--archive', '-pv', path, local]
+    logger.info("_rsync_pull: from %s remote=%s local=%s" % ( platform, remote, local))
+    process = subprocess.Popen(cmd,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT)
+    output,stderr = process.communicate()
+    status = process.poll()
+    return (status,output,stderr)
+
 def _rsync_push(platform, local, remote):
-    pass
+    logger.info("_rsync_push: to %s remote=%s local=%s" % ( platform, remote, local))
+    path = "%s:%s" % (platform.canonical_host, remote)
+    cmd = ['rsync','--archive', '-pv', local, path]
+    
+    process = subprocess.Popen(cmd,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT)
+    output,stderr = process.communicate()
+    status = process.poll()
+    return (status,output,stderr)
 
 def verify(site):
     (status, out, err) = _remote_drush(site, "vget maintenance_mode")
@@ -69,9 +87,50 @@ def disable(site):
     (status, out, err) = _remote_drush(site, "vset --yes maintenance_mode 1")
     return status == 0
 
+def cron(site):
+    (status, out, err) = _remote_drush(site, "cron")
+    return status == 0
+    
+def _backup_db(site, path):
+    tmpdir = '/tmp'
+
+    (status, remote_tempfile, err) = _remote_ssh(site.platform, 'mktemp %s' % (os.path.join(tmpdir, 'mysqldump.XXXXXXXX')))
+    if status > 0:
+        logger.error('_backup_db: could not open remote tempfile on host %s' % (site.platform.host,))
+        return False
+
+    logger.info('_backup_db: tempfile=%s site=%s' % (remote_tempfile, site))
+    (status, out, err) = _remote_ssh(site.platform,
+                                     'mysqldump --add-drop-database --single-transaction --databases %s > %s' % ( site.database, remote_tempfile))
+    if status > 0:
+        logger.error('_backup_db: could not open mysqldump to tempfile on host %s' % (site.platform.host,))
+        logger.error(out)
+    else:
+        local_tempfile = tempfile.mkdtemp()
+        logger.info('_backup_db: localtempfile: %s' % (local_tempfile,))
+        (s,o,e) = _rsync_pull(site.platform, remote_tempfile, path)
+        logger.error(o)
+        logger.error(e)
+
+        _remote_ssh(site.platform, 'rm %s' % (remote_tempfile,))
+        if s == 0:
+            return True
+   
+    return False
+
+def _backup_files(site, path):
+    (s,o,e) = _rsync_pull(site.platform, site.site_dir(), path)
+    if s == 0:
+        return True
+
+
 
 def backup(site):
+    """Returns a path to a backup or false if it doesn't succeed."""
+    path = tempfile.mkdtemp(prefix='sdt',dir='/tmp/x')
 
+    _backup_db(site,path)
+    _backup_files(site,path)
     return True
 
 
