@@ -245,20 +245,23 @@ def create(site, force=False):
         return False
 
     if _create_site_database(site):
-        
+         
         logger.info("create: sitedir: %s" % (site.site_dir(),))
-        _create_site_dirs(site)
+        if _create_site_dirs(site):
 
-        _remote_drush(site, "site-install --site-name='%s' --sites-subdir=%s %s"
-                      %( site.long_name,
-                         self.platform.host + '.' +  self.short_name,
-                         site.profile) ) 
-        
-        return True
+            install_status, output, err = _remote_drush(site, "site-install --site-name='%s' --sites-subdir='%s' %s"
+                                                        %( site.long_name,
+                                                           self.platform.host + '.' +  self.short_name,
+                                                           site.profile) )
+            if install_status:
+                return True
+            else:
+                logger.error("create(): create site failed. %s" %(output,))
+        else:
+            logger.error("create(): create sitedirs failed")
+            
+        delete_site(site)
 
-        _remote_ssh(site.platform, 'rm -Rf %s' % (site.site_dir(),))
-        _remote_ssh(site.platform, 'unlink %s' % (site.site_symlink(),))
-        _remote_ssh(site.platform, 'mysql -e "drop database %s;"' % (site.database,))
     else:
         logger.error('create database failed %s' % (out,))
         return False
@@ -269,3 +272,22 @@ def create(site, force=False):
     logger.info("create: leave")
     
     
+def delete_site(site):
+    logger.debug("delete_site(): called")
+    
+    if is_clean(site):
+
+        logger.error("delete_site(): site=%s is already clean." %(site,))
+        return True
+
+    if site.short_name == 'default':
+        logger.error("delete_site(): site=%s can't be deleted." %(site,))
+        return False
+
+    #todo: report more nicely about specific exit statuses.
+    
+    _remote_ssh(site.platform, 'rm -Rf %s' % (site.site_dir(),))
+    _remote_ssh(site.platform, 'unlink %s' % (site.site_symlink(),))
+    _remote_ssh(site.platform, 'mysql -e "drop database %s;"' % (site.database,))
+
+    return True
