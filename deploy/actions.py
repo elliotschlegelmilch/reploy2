@@ -21,6 +21,16 @@ def _remote_ssh(platform, cmd):
                                stderr=subprocess.STDOUT)
     output,stderr = process.communicate()
     status = process.poll()
+
+    if not status == 0:
+        if status == 127:
+            (s,out, err) = _remote_ssh(platform, "echo $PATH")
+            logger.critical("_remote_ssh: not found: is `%s' in the remote path (%s)" % ( cmd.split(' ')[0],out))
+            
+        
+        logger.debug("_remote_ssh: command output: %s" % (output,))
+        logger.debug("_remote_ssh: command error: %s" % (stderr,))
+
     logger.info("_remote_ssh: returned %d" %(status,))
     return (status,output,stderr)
 
