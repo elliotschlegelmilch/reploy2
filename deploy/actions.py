@@ -98,6 +98,14 @@ def disable(site):
     (status, out, err) = _remote_drush(site, "vset --yes maintenance_mode 1")
     return status == 0
 
+def cacheclear(site):
+    #TODO: cacheclear: needs to handle default
+    (status, out, err) = _remote_drush(site, "vp /%s" %( site.short_name,))
+    (status, out, err) = _remote_drush(site, "cc --yes all")
+    
+    return status == 0
+    
+
 def cron(site):
     (status, out, err) = _remote_drush(site, "cron")
     return status == 0
