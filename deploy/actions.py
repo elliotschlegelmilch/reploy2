@@ -274,15 +274,15 @@ def create(site, force=False):
     
 def delete_site(site):
     logger.debug("delete_site(): called")
-    
-    if is_clean(site):
 
+    if site.short_name == 'default':
+        logger.error("delete_site(): site=%s default sites can't be deleted." %(site,))
+        return False
+
+    if is_clean(site):
         logger.error("delete_site(): site=%s is already clean." %(site,))
         return True
 
-    if site.short_name == 'default':
-        logger.error("delete_site(): site=%s can't be deleted." %(site,))
-        return False
 
     #todo: report more nicely about specific exit statuses.
     
