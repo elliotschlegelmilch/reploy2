@@ -1,11 +1,12 @@
 from django.contrib import admin, messages
-from models import Platform, Site
+from models import Platform, Site, Status
 from deploy.actions import verify, create
 
 
 class SiteAdmin(admin.ModelAdmin):
-    list_display = ['short_name','long_name', 'contact_email','maintenance_mode', 'pre_production']
-    list_filter = ['platform','maintenance_mode']
+    list_display = ['__unicode__',
+                    'short_name','long_name', 'contact_email','platform','show_status']
+    list_filter = ['platform','staff_email','status']
     search_fields = ['long_name','short_name']
     ordering = ['long_name', 'short_name']
     actions = ['site_online','site_offline', 'site_verify','site_create', 'site_cacheclear']
@@ -42,6 +43,7 @@ class SiteAdmin(admin.ModelAdmin):
     
 admin.site.register(Site,SiteAdmin)
 admin.site.register(Platform)
+#admin.site.register(Status)
 
 
 
