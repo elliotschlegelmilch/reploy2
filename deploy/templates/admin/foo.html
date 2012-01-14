@@ -1,0 +1,35 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block extrastyle %}
+{% load adminmedia %}
+  <link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/forms.css" />
+{% endblock %}
+
+{% block sidebar %}{% endblock %}
+ 
+{% block content %}
+   
+ <form action="" method="post">
+<div>
+   <fieldset class="module aligned ">
+	     {% for field in form %}
+	<div class="form-row">
+            {{ field.errors }}
+            {{ field.label_tag }} {{ field  }}
+        </div>
+    {% endfor %}
+
+      </fieldset>
+</div>
+
+<div class="submit-row">
+<input type="submit" value="Save" class="default" name="_save">
+</div>
+
+
+</form>
+{% endblock %}
+
+
+
