@@ -5,9 +5,20 @@ import os.path
 import shutil
 import subprocess
 import tempfile
-
+from deploy.models import *
 
 logger = logging.getLogger(__name__)
+
+def check_platform(self):
+    ok = True
+    #check path
+    #check db/my.cnf
+    #check for drush
+    #check for mysql mysqldump in path
+    #check for tar + rsync
+
+    return ok
+
 
 def _remote_ssh(platform, cmd):
     """ returns tuple of (exit status, stdout, sdterr) """
@@ -33,7 +44,6 @@ def _remote_ssh(platform, cmd):
 
     logger.info("_remote_ssh: returned %d" %(status,))
     return (status,output,stderr)
-
 
 def _remote_drush(site, args):
     """ run drush command <drush args> on remote site"""
@@ -72,24 +82,37 @@ def _rsync_push(platform, local, remote):
 def verify(site):
     (status, out, err) = _remote_drush(site, "vget maintenance_mode")
 
+    site.set_flag('unqueried')
+
+    (status, out, err) = _remote_drush(site, "vget site_name")
+    if status == 0:
+        site.long_name = parse_vget('site_name', out)
+        site.set_flag('ok')
+        site.unset_flag('unqueried')
+    else:
+        site.unset_flat('ok')
+
+    site.save()
+    
     if status == 0:
         x = parse_vget('maintenance_mode', out)
         if x == 1:
-            site.maintenance_mode = True
+            site.set_flag('maintenance')
         else:
-            site.maintenance_mode = False
-        site.save()
+            site.unset_flag('maintenance')
+
     else:
         """ problem with the site"""
         pass
 
 
-    (status, out, err) = _remote_drush(site, "vget site_name")
+    (status, out, err) = _remote_drush(site, "vget site_mail")
     if status == 0:
-        site.long_name = parse_vget('site_name', out)
+        site.contact_email = parse_vget('site_mail', out)
         site.save()
-        
 
+    
+       
 def enable(site):
     (status, out, err) = _remote_drush(site, "vset maintenance_mode 0")
     return status == 0
@@ -102,10 +125,8 @@ def cacheclear(site):
     #TODO: cacheclear: needs to handle default
     (status, out, err) = _remote_drush(site, "vp /%s" %( site.short_name,))
     (status, out, err) = _remote_drush(site, "cc --yes all")
-    
     return status == 0
     
-
 def cron(site):
     (status, out, err) = _remote_drush(site, "cron")
     return status == 0
@@ -141,8 +162,8 @@ def _backup_files(site, path):
     (s,o,e) = _rsync_pull(site.platform, site.site_dir(), path)
     if s == 0:
         return True
-
-
+    else:
+        return False
 
 def backup(site):
     """Returns a path to a backup or false if it doesn't succeed."""
@@ -157,6 +178,10 @@ def backup(site):
     
     friendly_backup_path = os.path.join('/tmp', site_name + '-' + datetime.datetime.now().strftime('%Y%m%d.%H%M%S'))
     logger.info('backup: destination_path=%s' %(friendly_backup_path,))
+
+    with tarfile.open(friendly_backup_path + '.tgz'):
+
+        pass
     
     #shutil.rmtree( pre_stage )
     #move temporary path to a better name.
@@ -193,6 +218,7 @@ def migrate(site, new_platform):
     rsync_cmd = 'rsync --archive -p %s:%s %s' % (site.platform.host,
                                                  site.site_dir(),
                                                  pre_stage)
+
     logger.info('migrate: rsync command: %s' %(rsync_cmd,))
 
     

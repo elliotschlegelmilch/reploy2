@@ -1,6 +1,9 @@
 from django.db import models
 from actions import verify
 import os.path
+import logging
+
+logger = logging.getLogger(__name__)
 
 PLATFORM_CHOICES = (
     ('pro','production'),
@@ -23,23 +26,25 @@ class Platform(models.Model):
     def __unicode__(self):
         return self.name
 
+
 class Status(models.Model):
     status = models.CharField(max_length=48, primary_key=True)
+
     def __str__(self):
         return self.status
     def __unicode__(self):
         return self.status
 
-class Site(models.Model):
+    ## maintaince mode, preproduction, ok, deprecated
 
+class Site(models.Model):
     long_name        = models.CharField(max_length=256, blank=True, help_text='this is the site name' )
     short_name       = models.CharField(max_length=32, null=False, blank=False, help_text='this is the site name, e.g.: foo to create the site www.example.org/foo')
     platform         = models.ForeignKey(Platform, help_text='Which platform should this site be created.')
     database         = models.CharField(max_length=32, null=False, blank=True)
     contact_email    = models.CharField(max_length=64, help_text='this populates the site_admin field of the site')
     staff_email      = models.CharField(max_length=64)
-    status           = models.ManyToManyField(Status)
-
+    status           = models.ManyToManyField(Status, blank=True)
 
     def save(self, *args, **kwargs):
         if self.database == '':
@@ -56,6 +61,20 @@ class Site(models.Model):
     def show_status(self):
         return ','.join([str(i) for i in self.status.all()])
 
+    def set_flag(self,flag):
+        status_obj = Status.objects.get(pk=flag)
+        if status_obj:
+            self.status.add( status_obj)
+            return True
+        return False
+
+    def unset_flag(self,flag):
+        status_obj = Status.objects.get(pk=flag)
+        if status_obj:
+            self.status.remove( status_obj)
+            return True
+        return False
+    
     @property
     def installed(self):
         return (self.status.filter(status = 'not installed').count() == 0)
@@ -63,7 +82,6 @@ class Site(models.Model):
     @property
     def local_config(self):
         return None
-        
 
     def site_dir(self):
         return os.path.join(self.platform.path, 'sites', self.platform.host + '.' +  self.short_name)
