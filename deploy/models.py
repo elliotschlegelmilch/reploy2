@@ -42,6 +42,17 @@ class Site(models.Model):
     short_name       = models.CharField(max_length=32, null=False, blank=False, help_text='this is the site name, e.g.: foo to create the site www.example.org/foo')
     platform         = models.ForeignKey(Platform, help_text='Which platform should this site be created.')
     database         = models.CharField(max_length=32, null=False, blank=True)
+    profile          = models.CharField(max_length=20, null=False, default='psu_primary',
+                                        choices= (
+                                            ('minimal','Minimal'),
+                                            ('psu_home','PSU Home'),
+                                            ('psu_primary','PSU Primary'),
+                                            ('psu_secondary','PSU Secondary'),
+                                            ('psu_syndication','Syndication'),
+                                            ('standard','Standard'),
+                                            ('testing','Testing'),
+                                             ))
+
     contact_email    = models.CharField(max_length=64, help_text='this populates the site_admin field of the site')
     staff_email      = models.CharField(max_length=64)
     status           = models.ManyToManyField(Status, blank=True)
@@ -55,7 +66,10 @@ class Site(models.Model):
         unique_together = ("short_name", "platform")            
 
     def __unicode__(self):
-        return u"http://%s/%s" %( self.platform.host, self.short_name )
+        if self.short_name == 'default':
+            return u"http://%s/" %( self.platform.host, )
+        else:
+            return u"http://%s/%s" %( self.platform.host, self.short_name )
 
     # some helpers for the multiflag.
     def show_status(self):
@@ -84,7 +98,10 @@ class Site(models.Model):
         return None
 
     def site_dir(self):
-        return os.path.join(self.platform.path, 'sites', self.platform.host + '.' +  self.short_name)
+        if self.short_name == 'default':
+            return os.path.join(self.platform.path, 'sites', 'default')
+        else:
+            return os.path.join(self.platform.path, 'sites', self.platform.host + '.' +  self.short_name)
 
     def site_files_dir(self):
         """ returns a list of paths in the files directory. They don't always get created properly even if the parent directory has appropriate permissions"""
@@ -96,7 +113,7 @@ class Site(models.Model):
              'styles/pdx_school_home',
              'styles/square_thumbnail']
 
-        return [ os.path.join( self.site_dir(), i ) for i in d ]
+        return [ os.path.join('files', self.site_dir(), i ) for i in d ]
 
     def site_symlink(self):
         return os.path.join(self.platform.path, self.short_name)
