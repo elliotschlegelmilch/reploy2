@@ -22,8 +22,9 @@ def check_platform(self):
 
 def _remote_ssh(platform, cmd):
     """ returns tuple of (exit status, stdout, sdterr) """
+    
     logger.info("_remote_ssh: enter")
-
+    begin = datetime.datetime.now()
     remote_cmd = ['ssh', platform.canonical_host, cmd]
     logger.info("_remote_ssh: %s" % (' '.join(remote_cmd),) )
 
@@ -43,6 +44,10 @@ def _remote_ssh(platform, cmd):
         logger.debug("_remote_ssh: command error: %s" % (stderr,))
 
     logger.info("_remote_ssh: returned %d" %(status,))
+
+    t = datetime.datetime.now() - begin
+    logger.info("_remote_ssh: took %d seconds." % ( t.seconds,))
+        
     return (status,output,stderr)
 
 def _remote_drush(site, args):
