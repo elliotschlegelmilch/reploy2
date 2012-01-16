@@ -152,7 +152,7 @@ def _backup_db(site, path):
         logger.error(out)
     else:
         local_tempfile = tempfile.mkdtemp()
-        logger.info('_backup_db: localtempfile: %s' % (local_tempfile,))
+        logger.info('_backup_db: local sql tempfile: %s' % (local_tempfile,))
         (s,o,e) = _rsync_pull(site.platform, remote_tempfile, path)
         logger.error(o)
         logger.error(e)
@@ -168,11 +168,13 @@ def _backup_files(site, path):
     if s == 0:
         return True
     else:
+        print e
+        print o
         return False
 
 def backup(site):
     """Returns a path to a backup or false if it doesn't succeed."""
-    path = tempfile.mkdtemp(prefix='sdt',dir='/tmp/x')
+    path = tempfile.mkdtemp(prefix='sdt',dir='/tmp/')
 
     logger.info('backup: temporary_path=%s' % (path,))
     db = _backup_db(site,path)
@@ -180,25 +182,24 @@ def backup(site):
 
     site_name = site.platform.host + '.' + site.short_name
 
-    
-    friendly_backup_path = os.path.join('/tmp', site_name + '-' + datetime.datetime.now().strftime('%Y%m%d.%H%M%S'))
+    friendly_backup_path = os.path.join('/tmp', site_name + '-' + datetime.datetime.now().strftime('%Y%m%d.%H%M%S') + '.tgz')
     logger.info('backup: destination_path=%s' %(friendly_backup_path,))
 
-    with tarfile.open(friendly_backup_path + '.tgz'):
-
-        pass
+    cmd = ['tar','-C', path, '-czf', friendly_backup_path, '.']
+    logger.info('backup: command is: %s' % (cmd,))
     
-    #shutil.rmtree( pre_stage )
-    #move temporary path to a better name.
+    process = subprocess.Popen(cmd,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT)
+    output,stderr = process.communicate()
+    status = process.poll()
 
-    
-    return True
+    if status == 0:
+        return True
 
+    return False
 
 def migrate(site, new_platform):
-
-    dest_site = site
-    dest_site.platform = new_platform
 
     backup_result = backup(site)
 
@@ -210,6 +211,11 @@ def migrate(site, new_platform):
         logger.info('migrate: destination site not clean, bail')
         return False
 
+    dest_site = site
+    dest_site.id = None
+    dest_site.platform = new_platform
+    dest_site.save()
+    
     #create destination site paths.
     result = _create_site_dirs(dest_site)
 
@@ -228,6 +234,11 @@ def migrate(site, new_platform):
 
     
     shutil.rmtree( pre_stage )
+
+
+#def migrate_db(old_site, new_site):
+    
+    
 
 
 def is_clean(site):
@@ -272,7 +283,8 @@ def create(site, force=False):
     #create db
     logger.info("create: enter")
 
-    if not is_clean(site):
+    if not is_clean(site) and not force:
+        logger.info("create: forced")
         return False
 
     if _create_site_database(site):
@@ -280,13 +292,15 @@ def create(site, force=False):
         logger.info("create: sitedir: %s" % (site.site_dir(),))
         if _create_site_dirs(site):
 
-            install_status, output, err = _remote_drush(site, "site-install --site-name='%s' --sites-subdir='%s' %s"
+            install_status, output, err = _remote_drush(site, "site-install -y --site-name='%s' --sites-subdir='%s' %s"
                                                         %( site.long_name,
-                                                           self.platform.host + '.' +  self.short_name,
+                                                           site.platform.host + '.' +  site.short_name,
                                                            site.profile) )
             if install_status:
                 return True
             else:
+                print output
+                print err
                 logger.error("create(): create site failed. %s" %(output,))
         else:
             logger.error("create(): create sitedirs failed")
