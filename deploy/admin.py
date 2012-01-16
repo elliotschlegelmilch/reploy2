@@ -2,14 +2,19 @@ from django.contrib import admin, messages
 from models import Platform, Site, Status
 from deploy.actions import verify, create
 
+from django.http import HttpResponse
+from django.core import serializers
+
+from django.contrib import admin
+from django.contrib.contenttypes.models import ContentType
+from django.http import HttpResponseRedirect
 
 class SiteAdmin(admin.ModelAdmin):
-    list_display = ['__unicode__',
-                    'short_name','long_name', 'contact_email','platform','show_status']
-    list_filter = ['platform','staff_email','status']
-    search_fields = ['long_name','short_name']
+    list_display = ['__unicode__', 'short_name','long_name', 'contact_email','platform','show_status']
+    list_filter = ['platform', 'staff_email', 'status']
+    search_fields = ['long_name', 'short_name']
     ordering = ['long_name', 'short_name']
-    actions = ['site_online','site_offline', 'site_verify','site_create', 'site_cacheclear']
+    actions = ['site_online', 'site_offline', 'site_verify', 'site_create', 'site_cacheclear', 'site_migrate']
 
     def site_online(self, request, queryset):
         messages.add_message(request, messages.INFO, '')
