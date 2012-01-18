@@ -9,16 +9,7 @@ from deploy.models import *
 
 logger = logging.getLogger(__name__)
 
-def check_platform(self):
-    ok = True
-    #check path
-    #check db/my.cnf
-    #check for drush
-    #check for mysql mysqldump in path
-    #check for tar + rsync
-
-    return ok
-
+# begin utility functions
 
 def _remote_ssh(platform, cmd):
     """ returns tuple of (exit status, stdout, sdterr) """
@@ -84,18 +75,41 @@ def _rsync_push(platform, local, remote):
     status = process.poll()
     return (status,output,stderr)
 
+# end utility functions
+
+
+def check_platform(platform):
+    ok = True
+
+    #check path
+    (status, out, err) = _remote_ssh(platform, '[ -d %s ]' % (platform.path,))
+    ok = ok and status 
+
+    #check db/my.cnf
+    (status, out, err) = _remote_ssh(platform, '[ -f %s ]' % ( '.my.cnf',))
+    ok = ok and status
+                                     
+    #check for drush
+    (status, out, err) = _remote_ssh(platform, 'which drush')
+    ok = ok and status
+
+    return ok
+
+
+
 def verify(site):
     (status, out, err) = _remote_drush(site, "vget maintenance_mode")
 
-    site.set_flag('unqueried')
+    site.unset_flag('unqueried')
 
     (status, out, err) = _remote_drush(site, "vget site_name")
     if status == 0:
         site.long_name = parse_vget('site_name', out)
         site.set_flag('ok')
         site.unset_flag('unqueried')
+        site.unset_flag('not-installed')
     else:
-        site.unset_flat('ok')
+        site.unset_flag('ok')
 
     site.save()
     
