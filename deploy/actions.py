@@ -265,7 +265,11 @@ def is_clean(site):
 
 def _create_site_dirs(site):
     #link
-    _remote_ssh(site.platform, '/bin/ln %s %s' % (site.platform.path, site.site_symlink()))
+    _remote_ssh(site.platform, '/bin/ln -s %s %s' % (
+        site.platform.path,
+        site.site_symlink(),
+        ) )
+
     _remote_ssh(site.platform, 'mkdir %s' % (site.site_dir(), ))
     
     for directory in site.site_files_dir():
@@ -277,8 +281,18 @@ def _create_site_dirs(site):
 def _create_site_database(site):
     (status, out, err) = _remote_ssh(site.platform, 'mysql -e "create database %s;"' % (site.database,))
     return status == 0
-    
-    
+
+
+def _create_settings_php(site):
+    settings = tempfile.mkstemp()[1]
+    site.settings_php(settings)
+    (status, out, err) = _rsync_push(site.platform,
+                                     settings,
+                                     os.path.join( site.site_dir(), 'settings.php')
+                                     )
+    return status == True
+
+
 def create(site, force=False):
     #create db
     logger.info("create: enter")
@@ -287,11 +301,12 @@ def create(site, force=False):
         logger.info("create: forced")
         return False
 
-    if _create_site_database(site):
+    if _create_site_database(site) or force:
          
         logger.info("create: sitedir: %s" % (site.site_dir(),))
-        if _create_site_dirs(site):
+        if _create_site_dirs(site) or force:
 
+            #put in a settings.php
             install_status, output, err = _remote_drush(site, "site-install -y --site-name='%s' --sites-subdir='%s' %s"
                                                         %( site.long_name,
                                                            site.platform.host + '.' +  site.short_name,
@@ -308,7 +323,7 @@ def create(site, force=False):
         delete_site(site)
 
     else:
-        logger.error('create database failed %s' % (out,))
+        logger.error('create database failed %s' % (site.database,))
         return False
 
     

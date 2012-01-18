@@ -138,12 +138,14 @@ require_once($_inc);
             'install': ('NULL' if self.installed else 'TRUE'),
             'inc': inc,
             'local_config': self.local_config }
-            
-        print settings
-            
-        print site_vars
 
-
+        if f:
+            print f
+            fd = file(f, 'w')
+            fd.write(settings % site_vars)
+            fd.close()
+        
+            
         return settings % site_vars
 
 
