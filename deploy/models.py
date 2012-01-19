@@ -113,13 +113,13 @@ class Site(models.Model):
              'styles/pdx_school_home',
              'styles/square_thumbnail']
 
-        return [ os.path.join('files', self.site_dir(), i ) for i in d ]
+        return [ os.path.join( self.site_dir(),'files', i ) for i in d ]
 
     def site_symlink(self):
         return os.path.join(self.platform.path, self.short_name)
 
     def settings_php(self, f=None):
-        inc = os.path.join(self.platform.path, self.platform.host + '.php')
+        inc = os.path.join(self.platform.path,'sites', self.platform.host + '.php')
         settings = """<?php
 $_db  = '%(database)s';
 $_dir = '%(sitedir)s'; 
@@ -137,7 +137,7 @@ require_once($_inc);
             'sitedir': self.platform.host + '.' +  self.short_name,
             'install': ('NULL' if self.installed else 'TRUE'),
             'inc': inc,
-            'local_config': self.local_config }
+            'local_config': self.local_config if self.local_config else ''}
 
         if f:
             print f
