@@ -35,6 +35,11 @@ class SiteAdmin(admin.ModelAdmin):
     def site_cacheclear(self, request, queryset):
         pass
 
+    def site_migrate(self, request, queryset):
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        ct = ContentType.objects.get_for_model(queryset.model)
+        return HttpResponseRedirect("/site-migrate?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
+        return HttpResponseRedirect("/site/migrate/%s" % ( ",".join(selected)), )
     
         
     site_online.short_description = 'Maintenance Mode: disable.'
