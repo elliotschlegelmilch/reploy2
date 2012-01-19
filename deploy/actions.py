@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def _remote_ssh(platform, cmd):
     """ returns tuple of (exit status, stdout, sdterr) """
     
-    logger.info("_remote_ssh: enter")
+    #logger.info("_remote_ssh: enter")
     begin = datetime.datetime.now()
     remote_cmd = ['ssh', platform.canonical_host, cmd]
     logger.info("_remote_ssh: %s" % (' '.join(remote_cmd),) )
@@ -34,10 +34,8 @@ def _remote_ssh(platform, cmd):
         logger.info("_remote_ssh: command output: %s" % (output,))
         logger.info("_remote_ssh: command error: %s" % (stderr,))
 
-    logger.info("_remote_ssh: returned %d" %(status,))
-
     t = datetime.datetime.now() - begin
-    logger.info("_remote_ssh: took %d seconds." % ( t.seconds,))
+    logger.info("_remote_ssh: took %d seconds. exit status %d." % ( t.seconds,status))
         
     return (status,output,stderr)
 
@@ -311,6 +309,14 @@ def _create_settings_php(site):
                                      )
     return status == True
 
+def _set_site_permissions(site):
+    (status, out, err) = _remote_ssh(site.platform, 'chmod 664 %s;' % (
+        os.path.join( site.site_dir(), 'settings.php' ),) )
+    (status, out, err) = _remote_ssh(site.platform, 'chmod 775 %s;' % ( site.site_dir(), ) )
+    
+    return status == 0
+    
+
 
 def create(site, force=False):
     #create db
@@ -330,6 +336,7 @@ def create(site, force=False):
                                                         %( site.long_name,
                                                            site.platform.host + '.' +  site.short_name,
                                                            site.profile) )
+            _set_site_permissions(site)
             if install_status:
                 return True
             else:
