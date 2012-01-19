@@ -31,6 +31,7 @@ class SiteAdmin(admin.ModelAdmin):
     def site_verify(self, request,queryset):
          for i in queryset:
              verify(i)
+
     def site_create(self, request, queryset):
         for i in queryset:
             create(i)
@@ -40,6 +41,11 @@ class SiteAdmin(admin.ModelAdmin):
 
     def site_cacheclear(self, request, queryset):
         pass
+    
+    def json(self, request, queryset):
+        response = HttpResponse(mimetype="text/javascript")
+        serializers.serialize("json", queryset, stream=response)
+        return response
 
     def site_migrate(self, request, queryset):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
@@ -58,11 +64,11 @@ class SiteAdmin(admin.ModelAdmin):
     site_cacheclear.short_description = 'Cache clear.'
     site_wipe.short_description = 'wipe... obliterate.'
     # rename migrate backup restore delete
-    
+
     
 admin.site.register(Site,SiteAdmin)
 admin.site.register(Platform)
-#admin.site.register(Status)
+admin.site.register(Status)
 
 
 

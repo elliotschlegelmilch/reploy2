@@ -31,8 +31,8 @@ def _remote_ssh(platform, cmd):
             logger.critical("_remote_ssh: not found: is `%s' in the remote path (%s)" % ( cmd.split(' ')[0],out))
             
         
-        logger.debug("_remote_ssh: command output: %s" % (output,))
-        logger.debug("_remote_ssh: command error: %s" % (stderr,))
+        logger.info("_remote_ssh: command output: %s" % (output,))
+        logger.info("_remote_ssh: command error: %s" % (stderr,))
 
     logger.info("_remote_ssh: returned %d" %(status,))
 
@@ -230,6 +230,13 @@ def migrate(site, new_platform):
     
     #create destination site paths.
     result = _create_site_dirs(dest_site)
+
+    #put in a settings.php
+    settings = tempfile.mkstemp()[1]
+    dest_site.settings_php(settings)
+    (status, out, err) = _rsync_push(dest_site.platform,
+                                     settings,
+                                     dest_site.site_dir())
 
     #copy site temporary location.
     (status, out, err) = _remote_ssh(site.platform, '[ -L %s ]' % (site.site_symlink(),))
