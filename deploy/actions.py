@@ -344,20 +344,24 @@ def create(site, force=False):
     logger.info("create: leave")
     
     
-def delete_site(site):
-    logger.debug("delete_site(): called")
+def wipe_site(site):
+    logger.debug("wipe_site(): called")
 
     if site.short_name == 'default':
-        logger.error("delete_site(): site=%s default sites can't be deleted." %(site,))
+        logger.error("wipe_site(): site=%s default sites can't be deleted." %(site,))
         return False
 
     if is_clean(site):
-        logger.error("delete_site(): site=%s is already clean." %(site,))
+        logger.error("wipe_site(): site=%s is already clean." %(site,))
         return True
 
 
     #todo: report more nicely about specific exit statuses.
     
+    #chmod some files that the installer restricts.
+    #  shouldn't be necessary normally, but needed for rollback.
+
+    _remote_ssh(site.platform, 'chmod -R 777 %s' %(site.site_dir(),))
     _remote_ssh(site.platform, 'rm -Rf %s' % (site.site_dir(),))
     _remote_ssh(site.platform, 'unlink %s' % (site.site_symlink(),))
     _remote_ssh(site.platform, 'mysql -e "drop database %s;"' % (site.database,))
