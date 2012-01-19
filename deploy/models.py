@@ -76,7 +76,12 @@ class Site(models.Model):
         return ','.join([str(i) for i in self.status.all()])
 
     def set_flag(self,flag):
-        status_obj = Status.objects.get(pk=flag)
+        status_obj = None
+        try:
+            status_obj = Status.objects.get(pk=flag)
+        except DoesNotExist:
+            pass
+        
         if status_obj:
             self.status.add( status_obj)
             return True
