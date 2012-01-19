@@ -129,11 +129,9 @@ def verify(site):
     if status == 0:
         site.contact_email = parse_vget('site_mail', out)
         site.save()
-
-    
        
 def enable(site):
-    (status, out, err) = _remote_drush(site, "vset maintenance_mode 0")
+    (status, out, err) = _remote_drush(site, "vset --yes maintenance_mode 0")
     return status == 0
 
 def disable(site):
