@@ -1,6 +1,6 @@
 from django.contrib import admin, messages
 from models import Platform, Site, Status
-from deploy.actions import verify, create
+from deploy.actions import verify, create, enable, disable, wipe_site
 
 from django.http import HttpResponse
 from django.core import serializers
@@ -14,14 +14,20 @@ class SiteAdmin(admin.ModelAdmin):
     list_filter = ['platform', 'staff_email', 'status']
     search_fields = ['long_name', 'short_name']
     ordering = ['long_name', 'short_name']
-    actions = ['site_online', 'site_offline', 'site_verify', 'site_create', 'site_cacheclear', 'site_migrate']
+    actions = ['site_online', 'site_offline', 'site_verify', 'site_create', 'site_cacheclear', 'site_migrate', 'site_wipe']
 
     def site_online(self, request, queryset):
-        messages.add_message(request, messages.INFO, '')
-
+        for i in queryset:
+            s = enable(i)
+            if s:
+                messages.add_message(request, messages.INFO, "The site %s is now online." % (i,) )
+                
     def site_offline(self, request, queryset):
-        messages.add_message(request, messages.INFO, '')
-             
+        for i in queryset:
+            s = disable(i)
+            if s:
+                messages.add_message(request, messages.INFO, "The site %s is now offline." % (i,) )
+                
     def site_verify(self, request,queryset):
          for i in queryset:
              verify(i)
@@ -39,15 +45,18 @@ class SiteAdmin(admin.ModelAdmin):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         ct = ContentType.objects.get_for_model(queryset.model)
         return HttpResponseRedirect("/site-migrate?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
-        return HttpResponseRedirect("/site/migrate/%s" % ( ",".join(selected)), )
     
+    def site_wipe(self, request, queryset):
+        for i in queryset:
+            wipe_site(i)
+            
         
     site_online.short_description = 'Maintenance Mode: disable.'
     site_offline.short_description = 'Maintenance Mode: enable.'
     site_verify.short_description = 'Verify site.'
     site_create.short_description = 'TEST: create site.'
     site_cacheclear.short_description = 'Cache clear.'
-
+    site_wipe.short_description = 'wipe... obliterate.'
     # rename migrate backup restore delete
     
     
