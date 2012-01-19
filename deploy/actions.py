@@ -107,7 +107,7 @@ def verify(site):
         site.long_name = parse_vget('site_name', out)
         site.set_flag('ok')
         site.unset_flag('unqueried')
-        site.unset_flag('not-installed')
+        site.unset_flag('not installed')
     else:
         site.unset_flag('ok')
 
