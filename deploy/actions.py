@@ -317,7 +317,7 @@ def create(site, force=False):
          
         logger.info("create: sitedir: %s" % (site.site_dir(),))
         if _create_site_dirs(site) or force:
-
+            _create_settings_php(site)
             #put in a settings.php
             install_status, output, err = _remote_drush(site, "site-install -y --site-name='%s' --sites-subdir='%s' %s"
                                                         %( site.long_name,
@@ -332,7 +332,7 @@ def create(site, force=False):
         else:
             logger.error("create(): create sitedirs failed")
             
-        delete_site(site)
+            wipe_site(site)
 
     else:
         logger.error('create database failed %s' % (site.database,))
