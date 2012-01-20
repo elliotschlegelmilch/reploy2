@@ -29,6 +29,7 @@ class Platform(models.Model):
 
 class Status(models.Model):
     status = models.CharField(max_length=48, primary_key=True)
+    _valid = ['deprecated', 'maintenance', 'ok', 'preproduction', 'unqueried','not installed']
 
     def __str__(self):
         return self.status
