@@ -1,3 +1,4 @@
+from deploy.models import *
 from util import parse_vget
 import datetime
 import logging
@@ -5,7 +6,6 @@ import os.path
 import shutil
 import subprocess
 import tempfile
-from deploy.models import *
 
 logger = logging.getLogger(__name__)
 
@@ -307,7 +307,7 @@ def _create_settings_php(site):
                                      settings,
                                      os.path.join( site.site_dir(), 'settings.php')
                                      )
-    return status == True
+    return status == 0
 
 def _set_site_permissions(site):
     (status, out, err) = _remote_ssh(site.platform, 'chmod 664 %s;' % (
@@ -330,15 +330,22 @@ def create(site, force=False):
          
         logger.info("create: sitedir: %s" % (site.site_dir(),))
         if _create_site_dirs(site) or force:
-            _create_settings_php(site)
+
             #put in a settings.php
-            install_status, output, err = _remote_drush(site, "site-install -y --site-name='%s' --sites-subdir='%s' %s"
+            settings = _create_settings_php(site)
+            if settings:
+                install_status, output, err = _remote_drush(site, "site-install -y --site-name='%s' --sites-subdir='%s' %s"
                                                         %( site.long_name,
                                                            site.platform.host + '.' +  site.short_name,
                                                            site.profile) )
-            _set_site_permissions(site)
-            if install_status:
-                return True
+                if install_status:
+                    site.unset_flag('not installed')
+                    site.save()
+                    perm = _set_site_permissions(site)
+                    return True
+
+                return False
+
             else:
                 print output
                 print err
