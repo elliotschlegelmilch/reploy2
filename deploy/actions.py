@@ -1,6 +1,8 @@
 from deploy.models import *
-from util import parse_vget
+from deploy.util import parse_vget
+
 import datetime
+import glob
 import logging
 import os.path
 import shutil
@@ -204,10 +206,26 @@ def backup(site):
     output,stderr = process.communicate()
     status = process.poll()
 
+    #remove temporary directory
+    shutil.rmtree(path)
+
     if status == 0:
         return True
 
     return False
+
+def _find_backup_file(site):
+    """returns the most recent backup tarball."""
+    
+    backup_location = '/tmp'
+    site_name = site.platform.host + '.' + site.short_name
+    l = glob.glob( os.path.join(backup_location, site_name + '-*') )
+    l.sort()
+    
+    if len(l) > 0:
+        return l[0]
+    
+    return None
 
 def migrate(site, new_platform):
 
@@ -226,6 +244,13 @@ def migrate(site, new_platform):
     dest_site.platform = new_platform
     dest_site.save()
     
+    # find the backup to use
+
+    tarball = _find_backup_file(site)
+    if tarball == None:
+        logger.info('migrate: backup succeeded but now where is it? help.')
+        return False
+
     #create destination site paths.
     result = _create_site_dirs(dest_site)
 
