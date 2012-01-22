@@ -54,25 +54,30 @@ def _remote_drush(site, args):
 
 def _rsync_pull(platform, remote, local):
     path = "%s:%s" % (platform.canonical_host, remote)
-    cmd = ['rsync','--archive', '-pv', path, local]
+    cmd = ['rsync','--archive', '--numeric-ids', '-pv', path, local]
     logger.info("_rsync_pull: from %s remote=%s local=%s" % ( platform, remote, local))
+    begin = datetime.datetime.now()
     process = subprocess.Popen(cmd,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT)
     output,stderr = process.communicate()
     status = process.poll()
+    t = datetime.datetime.now() - begin
+    logger.info('_rsync_pull: took %d seconds. returned %d.' % (t.seconds, status))
     return (status,output,stderr)
 
 def _rsync_push(platform, local, remote):
     logger.info("_rsync_push: to %s remote=%s local=%s" % ( platform, remote, local))
     path = "%s:%s" % (platform.canonical_host, remote)
-    cmd = ['rsync','--archive', '-pv', local, path]
-    
+    cmd = ['rsync','--archive', '--numeric-ids', '-pv', local, path]
+    begin = datetime.datetime.now()
     process = subprocess.Popen(cmd,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT)
     output,stderr = process.communicate()
     status = process.poll()
+    t = datetime.datetime.now() - begin
+    logger.info('_rsync_pull: took %d seconds. returned %d.' % (t.seconds, status))
     return (status,output,stderr)
 
 # end utility functions
@@ -197,7 +202,7 @@ def backup(site):
     friendly_backup_path = os.path.join('/tmp', site_name + '-' + datetime.datetime.now().strftime('%Y%m%d.%H%M%S') + '.tgz')
     logger.info('backup: destination_path=%s' %(friendly_backup_path,))
 
-    cmd = ['tar','-C', path, '-czf', friendly_backup_path, '.']
+    cmd = ['tar','-C', path, '-cpzf', friendly_backup_path, '.']
     logger.info('backup: command is: %s' % (cmd,))
     
     process = subprocess.Popen(cmd,
