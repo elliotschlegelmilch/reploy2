@@ -37,10 +37,19 @@ class SiteAdmin(admin.ModelAdmin):
             create(i)
 
     def site_backup(self,request, queryset):
-        pass
+        for i in queryset:
+            s = backup(i)
+            if s:
+                messages.add_message(request,
+                                     messages.INFO, "the site, %s, has been backuped." %( i, ))
+
 
     def site_cacheclear(self, request, queryset):
-        pass
+        for i in queryset:
+            s = cacheclear(i)
+            if s:
+                messages.add_message(request, messages.INFO, "The cache of site %s has been cleared." % (i,) )
+
     
     def json(self, request, queryset):
         response = HttpResponse(mimetype="text/javascript")
