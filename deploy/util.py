@@ -2,6 +2,7 @@ import datetime
 import logging
 import shlex
 import subprocess
+import urllib2
 
 logger = logging.getLogger(__name__)
 
@@ -78,3 +79,18 @@ def _rsync_push(platform, local, remote):
     t = datetime.datetime.now() - begin
     logger.info('_rsync_pull: took %d seconds. returned %d.' % (t.seconds, status))
     return (status,output,stderr)
+
+
+def _check_site(site):
+    logger.info('_check_site: site: ' + str(site))
+
+    http_status = 200
+    
+    req = urllib2.Request(str(site))
+    try:
+        urllib2.urlopen(req)
+    except urllib2.URLError, e:
+        http_status = e.code
+        logger.info(e.read())
+        
+    return http_status == 200
