@@ -1,13 +1,11 @@
 from django.contrib import admin, messages
-from models import Platform, Site, Status
-from deploy.actions import verify, create, enable, disable, wipe_site
-
-from django.http import HttpResponse
-from django.core import serializers
-
-from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
-from django.http import HttpResponseRedirect
+from django.core import serializers
+from django.http import HttpResponseRedirect, HttpResponse
+
+from deploy.models import Platform, Site, Status
+from deploy.actions import verify, create, enable, disable, wipe_site, cacheclear, backup
+
 
 class SiteAdmin(admin.ModelAdmin):
     list_display = ['__unicode__', 'short_name','long_name', 'contact_email','platform','show_status']
