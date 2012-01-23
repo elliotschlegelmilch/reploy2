@@ -1,6 +1,7 @@
 from deploy.models import *
-from deploy.util import parse_vget, _remote_ssh, _remote_drush, _rsync_pull, _rsync_push
+from deploy.util import parse_vget, _remote_ssh, _remote_drush, _rsync_pull, _rsync_push, _check_site
 
+import copy
 import datetime
 import glob
 import logging
@@ -31,6 +32,11 @@ def check_platform(platform):
 
 
 def verify(site):
+
+    status = _check_site(site)
+    if not status:
+        return False
+            
     (status, out, err) = _remote_drush(site, "vget maintenance_mode")
 
     site.unset_flag('unqueried')
@@ -91,14 +97,15 @@ def _backup_db(site, path):
 
     logger.info('_backup_db: tempfile=%s site=%s' % (remote_tempfile, site))
     (status, out, err) = _remote_ssh(site.platform,
-                                     'mysqldump --add-drop-database --single-transaction --databases %s > %s' % ( site.database, remote_tempfile))
+                                     'mysqldump --single-transaction %s > %s' % ( site.database, remote_tempfile))
     if status > 0:
         logger.error('_backup_db: could not open mysqldump to tempfile on host %s' % (site.platform.host,))
         logger.error(out)
     else:
         local_tempfile = tempfile.mkdtemp()
         logger.info('_backup_db: local sql tempfile: %s' % (local_tempfile,))
-        (s,o,e) = _rsync_pull(site.platform, remote_tempfile, path)
+        (s,o,e) = _rsync_pull(site.platform, remote_tempfile,
+                              os.path.join(path,site.database + '.sql'))
         logger.error(o)
         logger.error(e)
 
@@ -149,44 +156,67 @@ def backup(site):
 
 def _find_backup_file(site):
     """returns the most recent backup tarball."""
-    
+    logger.info('_find_backup_file: looking for a recent backup of ' + str(site))
     backup_location = '/tmp'
     site_name = site.platform.host + '.' + site.short_name
     l = glob.glob( os.path.join(backup_location, site_name + '-*') )
     l.sort()
+    l.reverse()
     
     if len(l) > 0:
+        logger.info('_find_backup_file: found a backup: ' + l[0])
         return l[0]
     
     return None
 
 def migrate(site, new_platform):
 
-    backup_result = backup(site)
-
+    #backup_result = backup(site)
+    backup_result = True
     if not backup_result:
-        logger.info('migrate: backup didn\'t succeed, bail')
+        logger.critical('migrate: backup didn\'t succeed, bail')
         return False
 
-    if not is_clean(dest_site):
-        logger.info('migrate: destination site not clean, bail')
-        return False
-
-    dest_site = site
+    dest_site = copy.deepcopy(site)
     dest_site.id = None
     dest_site.platform = new_platform
     dest_site.save()
+    dest_site.set_flag('unqueried')
+    dest_site.save()
     
-    # find the backup to use
-
-    tarball = _find_backup_file(site)
-    if tarball == None:
-        logger.info('migrate: backup succeeded but now where is it? help.')
+    if not is_clean(dest_site):
+        logger.critical('migrate: destination site not clean, bail')
         return False
 
-    #create destination site paths.
-    result = _create_site_dirs(dest_site)
+    # find the backup to use
+    tarball = _find_backup_file(site)
+    if tarball == None:
+        logger.critical('migrate: backup succeeded but now where is it? help.')
+        return False
 
+    #push the tarball into place.
+    _rsync_push(new_platform, tarball, '/tmp')
+
+    #from the tarball, only extract foo.pdx.edu.baz into the sites/ directory
+    _remote_ssh(new_platform,
+                "tar -zxvf %s -C %s %s" % (os.path.join('/tmp/',tarball),
+                                           os.path.join(new_platform.path, 'sites'),
+                                           dest_site.platform.host + '.' + dest_site.short_name))
+    
+    _remote_ssh(new_platform,
+                "tar -zxvf %s -C %s %s" % (os.path.join('/tmp/',tarball),
+                                           '/tmp/',
+                                           dest_site.database + '.sql'))
+
+    #create and fill database
+    #todo: stage database + replacements first.
+    _create_site_database(dest_site)
+    (status, out, err) = _remote_ssh(dest_site.platform,
+                                     'mysql %s < %s' % (
+                                         dest_site.database,
+                                         os.path.join('/tmp',dest_site.database + '.sql')
+                                         ))
+    
     #put in a settings.php
     settings = tempfile.mkstemp()[1]
     dest_site.settings_php(settings)
@@ -194,26 +224,6 @@ def migrate(site, new_platform):
                                      settings,
                                      dest_site.site_dir())
 
-    #copy site temporary location.
-    (status, out, err) = _remote_ssh(site.platform, '[ -L %s ]' % (site.site_symlink(),))
-
-    pre_stage = tempfile.mkdtemp()
-    logger.info('migrate: pre_stage area is %d. ' % (pre_stage,))
-
-    #rsync files to pre_stage
-    rsync_cmd = 'rsync --archive -p %s:%s %s' % (site.platform.host,
-                                                 site.site_dir(),
-                                                 pre_stage)
-
-    logger.info('migrate: rsync command: %s' %(rsync_cmd,))
-
-    
-    shutil.rmtree( pre_stage )
-
-
-#def migrate_db(old_site, new_site):
-    
-    
 
 
 def is_clean(site):
