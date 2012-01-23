@@ -8,11 +8,14 @@ from deploy.actions import verify, create, enable, disable, wipe_site, cacheclea
 
 
 class SiteAdmin(admin.ModelAdmin):
-    list_display = ['__unicode__', 'short_name','long_name', 'contact_email','platform','show_status']
+    list_display = ['__unicode__', 'short_name','long_name', 'contact_email',
+                    'platform','show_status']
     list_filter = ['platform', 'staff_email', 'status']
     search_fields = ['long_name', 'short_name']
     ordering = ['long_name', 'short_name']
-    actions = ['site_online', 'site_offline', 'site_verify', 'site_create', 'site_cacheclear', 'site_migrate', 'site_wipe']
+    actions = ['site_online', 'site_offline', 'site_verify', 'site_create',
+               'site_cacheclear', 'site_migrate', 'site_wipe', 'site_backup']
+    exclude =['status']
 
     def site_online(self, request, queryset):
         for i in queryset:
