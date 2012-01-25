@@ -180,7 +180,7 @@ def migrate(site, new_platform):
     #backup_result = backup(site)
     backup_result = True
     if not backup_result:
-        logger.critical('migrate: backup didn\'t succeed, bail')
+        logger.critical("migrate: backup didn't succeed, bail")
         return False
 
     dest_site = copy.deepcopy(site)

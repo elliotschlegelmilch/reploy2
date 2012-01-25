@@ -91,6 +91,6 @@ def _check_site(site):
         urllib2.urlopen(req)
     except urllib2.URLError, e:
         http_status = e.code
-        logger.info(e.read())
+        logger.critical('_check_site: site=%s httpstatus=%d' % (str(site),http_status))
         
     return http_status == 200
