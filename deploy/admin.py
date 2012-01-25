@@ -31,7 +31,11 @@ class SiteAdmin(admin.ModelAdmin):
                 
     def site_verify(self, request,queryset):
          for i in queryset:
-             verify(i)
+             s = verify(i)
+             if s:
+                 messages.add_message(request, messages.SUCCESS, "%s has been verified." %(i,))
+             else:
+                 messages.add_message(request, messages.ERROR, "%s could not be verified." % (i,))
 
     def site_create(self, request, queryset):
         for i in queryset:
