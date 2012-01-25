@@ -299,9 +299,10 @@ def create(site, force=False):
             #put in a settings.php
             settings = _create_settings_php(site)
             if settings:
-                install_status, output, err = _remote_drush(site, "site-install -y --site-name='%s' --sites-subdir='%s' %s"
+                install_status, output, err = _remote_drush(site, "site-install -y --site-name='%s' --sites-subdir='%s' --site-email='%s' %s"
                                                         %( site.long_name,
                                                            site.platform.host + '.' +  site.short_name,
+                                                           site.contact_email,
                                                            site.profile) )
                 if install_status:
                     site.unset_flag('not installed')
