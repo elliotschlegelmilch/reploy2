@@ -47,9 +47,10 @@ def verify(site):
         site.set_flag('ok')
         site.unset_flag('unqueried')
         site.unset_flag('not installed')
+        site.save()
     else:
         site.unset_flag('ok')
-
+        
     site.save()
     
     if status == 0:
@@ -60,14 +61,19 @@ def verify(site):
             site.unset_flag('maintenance')
 
     else:
-        """ problem with the site"""
-        pass
-
+        site.unset_flag('maintenance')
+        site.save()
+        return False
 
     (status, out, err) = _remote_drush(site, "vget site_mail")
     if status == 0:
         site.contact_email = parse_vget('site_mail', out)
         site.save()
+    else:
+        return False
+
+    return True
+    
        
 def enable(site):
     (status, out, err) = _remote_drush(site, "vset --yes maintenance_mode 0")
