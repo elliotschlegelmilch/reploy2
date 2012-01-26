@@ -220,12 +220,19 @@ def migrate(site, new_platform):
         logger.critical("migrate: backup didn't succeed, bail")
         return False
 
-    dest_site = copy.deepcopy(site)
-    dest_site.id = None
-    dest_site.platform = new_platform
-    dest_site.save()
-    dest_site.set_flag('unqueried')
-    dest_site.save()
+    dest_site = None
+    q = Site.objects.filter(short_name=site.short_name, platform=new_platform)
+    if len(q) == 1:
+        dest_site = q[0]
+        #TODO: Do i want to keep this?
+        wipe_site(dest_site)
+    else:
+        dest_site = copy.deepcopy(site)
+        dest_site.id = None
+        dest_site.platform = new_platform
+        dest_site.save()
+        dest_site.set_flag('unqueried')
+        dest_site.save()
     
     if not is_clean(dest_site):
         logger.critical('migrate: destination site not clean, bail')
