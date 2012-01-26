@@ -130,6 +130,38 @@ def _backup_files(site, path):
         print o
         return False
 
+def _db_replace(old_site, new_site):
+
+    if old_site.short_name == 'default':
+        logger.critical('_db_replace: Can not run on default sites.')
+        return False
+
+    cols = [
+        ('field_revision_field_link', 'field_link_url'),
+        ('field_revision_body', 'body_value'),
+        ('field_revision_body', 'body_summary'),
+        ('field_data_body', 'body_value'),
+        ('field_data_body', 'body_summary'),
+        ('field_revision_field_link', 'field_link_url'),
+        ('field_data_field_link', 'field_link_url'),
+        ('field_data_field_slide_link', 'field_slide_link_value'),
+        ('field_revision_field_slide_link', 'field_slide_link_value'),
+        ('menu_links', 'link_path'),
+        ('block_custom', 'body'),
+        ('variable', 'value'),
+        ]
+
+    for i in cols:
+        (table, col) = i
+        sql1 = 'UPDATE %s SET %s = REPLACE(%s, "%s", "%s");' %( table, col, col, old_site.site_uri, new_site.site_uri )
+        sql2 = 'UPDATE %s SET %s = REPLACE(%s, "%s", "%s");' % ( table, col, col, old_site.files_dir, new_site.files_dir )
+                    
+        (status, out, err) = _remote_ssh(new_site.platform, 'mysql %s -e "%s"' % (new_site.database,sql1) )
+        (status, out, err) = _remote_ssh(new_site.platform, 'mysql %s -e "%s"' % (new_site.database,sql2) )
+        
+    return True
+
+
 def backup(site):
     """Returns a path to a backup or false if it doesn't succeed."""
     path = tempfile.mkdtemp(prefix='sdt',dir='/tmp/')
@@ -230,6 +262,13 @@ def migrate(site, new_platform):
                                      settings,
                                      dest_site.site_dir())
 
+
+    
+
+    _create_site_dirs(dest_site)
+
+    #search / replace database.
+    status = _db_replace(site, dest_site)
 
 
 def is_clean(site):
