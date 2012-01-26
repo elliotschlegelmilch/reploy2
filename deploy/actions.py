@@ -152,8 +152,8 @@ def _db_replace(old_site, new_site):
 
     for i in cols:
         (table, col) = i
-        sql1 = 'UPDATE %s SET %s = REPLACE(%s, "%s", "%s");' %( table, col, col, old_site.site_uri, new_site.site_uri )
-        sql2 = 'UPDATE %s SET %s = REPLACE(%s, "%s", "%s");' % ( table, col, col, old_site.files_dir, new_site.files_dir )
+        sql1 = "UPDATE %s SET %s = REPLACE(%s, '%s', '%s');" %( table, col, col, old_site.site_uri, new_site.site_uri )
+        sql2 = "UPDATE %s SET %s = REPLACE(%s, '%s', '%s');" % ( table, col, col, old_site.files_dir, new_site.files_dir )
                     
         (status, out, err) = _remote_ssh(new_site.platform, 'mysql %s -e "%s"' % (new_site.database,sql1) )
         (status, out, err) = _remote_ssh(new_site.platform, 'mysql %s -e "%s"' % (new_site.database,sql2) )
