@@ -103,7 +103,27 @@ class Site(models.Model):
     def local_config(self):
         return None
 
+    @property
+    def site_uri(self):
+        if self.short_name == 'default':
+            return u"http://%s/" %( self.platform.host, )
+        else:
+            return u"http://%s/%s" %( self.platform.host, self.short_name )
+
+    @property
+    def files_dir(self):
+        """Returns the directory where this site lives in files. Used in database replaces.
+        foo.net.bar or default."""
+        
+        if self.short_name == 'default':
+            return u"default"
+        else:
+            return u"%s.%s" %( self.platform.host, self.short_name )
+
     def site_dir(self):
+        """Returns the full filesystem path to the site. Used in database replaces.
+        /var/www/html/sites/foo.net.bar or /var/www/html/sites/default"""
+        
         if self.short_name == 'default':
             return os.path.join(self.platform.path, 'sites', 'default')
         else:
