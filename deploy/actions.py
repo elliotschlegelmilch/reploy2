@@ -236,14 +236,15 @@ def migrate(site, new_platform):
     #push the tarball into place.
     _rsync_push(new_platform, tarball, '/tmp')
 
-    #from the tarball, only extract foo.pdx.edu.baz into the sites/ directory
+    # from the tarball, only extract foo.pdx.edu.baz into the sites/ directory
+    # for some reason, these files have a leading ./ which i need to specify when extracting.
     _remote_ssh(new_platform,
-                "tar -zxvf %s -C %s %s" % (os.path.join('/tmp/',tarball),
+                "tar -zxvf %s -C %s ./%s" % (os.path.join('/tmp/',tarball),
                                            os.path.join(new_platform.path, 'sites'),
-                                           dest_site.platform.host + '.' + dest_site.short_name))
+                                           site.platform.host + '.' + site.short_name))
     
     _remote_ssh(new_platform,
-                "tar -zxvf %s -C %s %s" % (os.path.join('/tmp/',tarball),
+                "tar -zxvf %s -C %s ./%s" % (os.path.join('/tmp/',tarball),
                                            '/tmp/',
                                            dest_site.database + '.sql'))
 
@@ -255,6 +256,14 @@ def migrate(site, new_platform):
                                          dest_site.database,
                                          os.path.join('/tmp',dest_site.database + '.sql')
                                          ))
+
+    #rename sitedir to the correct thing.
+
+    _remote_ssh(new_platform, "mv %s %s" % (
+                    os.path.join(new_platform.path,'sites',site.files_dir),
+                    dest_site.site_dir() ))
+                
+                
     
     #put in a settings.php
     settings = tempfile.mkstemp()[1]
