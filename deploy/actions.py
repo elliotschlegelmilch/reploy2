@@ -208,6 +208,10 @@ def _find_backup_file(site):
 
 def migrate(site, new_platform):
 
+    if site.platform == new_platform:
+        logger.critical("migrate: trying to migrate ontop of itself.")
+        return False
+
     #backup_result = backup(site)
 
     backup_result = True
