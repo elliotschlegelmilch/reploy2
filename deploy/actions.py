@@ -1,5 +1,5 @@
 from deploy.util import parse_vget, _remote_ssh, _remote_drush, _rsync_pull, _rsync_push, _check_site
-
+from deploy.models import Site, Platform
 import copy
 import datetime
 import glob

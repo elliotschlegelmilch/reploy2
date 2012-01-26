@@ -1,5 +1,4 @@
 from django.db import models
-from actions import verify
 import os.path
 import logging
 
