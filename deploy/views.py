@@ -1,4 +1,5 @@
 from deploy.actions import migrate
+from django.core import urlresolvers
 from deploy.forms import Migrate
 from deploy.models import Platform, Site
 
@@ -21,14 +22,16 @@ def site_migrate(request):
             migrate(site, platform)
 
         # this needs to redirect or something.
-        
+        return redirect(
+            urlresolvers.reverse('admin:deploy_site_changelist')
+            )
+         
     data = {
         'user': request.user,
         'form': form,
         }
 
-    resp = render_to_response('foo.html', data)
-    return resp
+    return render_to_response('migrate.html', data)
 
 def home(request):
     return redirect('/admin')

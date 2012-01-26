@@ -11,6 +11,7 @@ class SiteAdmin(admin.ModelAdmin):
     list_display = ['__unicode__', 'short_name','long_name', 'contact_email',
                     'platform','show_status']
     list_filter = ['platform', 'staff_email', 'status']
+    list_display_links = ['short_name']
     search_fields = ['long_name', 'short_name']
     ordering = ['long_name', 'short_name']
     actions = ['site_online', 'site_offline', 'site_verify', 'site_create',
