@@ -1,4 +1,3 @@
-from deploy.models import *
 from deploy.util import parse_vget, _remote_ssh, _remote_drush, _rsync_pull, _rsync_push, _check_site
 
 import copy
@@ -210,7 +209,9 @@ def _find_backup_file(site):
 def migrate(site, new_platform):
 
     #backup_result = backup(site)
+
     backup_result = True
+    
     if not backup_result:
         logger.critical("migrate: backup didn't succeed, bail")
         return False
