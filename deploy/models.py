@@ -72,6 +72,10 @@ class Site(models.Model):
         else:
             return u"http://%s/%s" %( self.platform.host, self.short_name )
 
+    def link(self):
+        return '<a href="%s">%s</a>' %(self.__unicode__(),self.__unicode__())
+    link.allow_tags = True
+
     # some helpers for the multiflag.
     def show_status(self):
         return ','.join([str(i) for i in self.status.all()])
