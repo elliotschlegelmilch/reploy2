@@ -281,7 +281,7 @@ def migrate(site, new_platform):
     dest_site.settings_php(settings)
     (status, out, err) = _rsync_push(dest_site.platform,
                                      settings,
-                                     dest_site.site_dir())
+                                     os.path.join(dest_site.site_dir(), 'settings.php'))
 
 
     
