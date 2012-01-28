@@ -94,10 +94,22 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
 #    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_cas.middleware.CASMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
+
+AUTHENTICATION_BACKENDS = (
+    'django_cas.backends.CASBackend',
+    'django.contrib.auth.backends.ModelBackend',
+    )
+
 ROOT_URLCONF = 'deploy.urls'
+
+CAS_SERVER_URL = 'https://sso.pdx.edu/cas/'
+CAS_IGNORE_REFERER = False
+#CAS_PROXY_CALLBACK = 'http://elbereth.oit.pdx.edu:8000/accounts/login/casProxyCallback'
+#CAS_ADMIN_PREFIX = '/admin'
 
 TEMPLATE_DIRS = (
     'templates',
@@ -116,6 +128,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
+    'django_cas',
     'deploy'
 )
 

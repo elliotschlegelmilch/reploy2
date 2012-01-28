@@ -12,6 +12,7 @@ urlpatterns = patterns( '',
                         # url(r'^deploy/', include('deploy.foo.urls')),
                         # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
                         url(r'^admin/', include(admin.site.urls)),
-                        url(r'^a/', include(admin.site.urls)),
+                        url(r'^accounts/login/$', 'django_cas.views.login'),
+                        url(r'^accounts/logout/$', 'django_cas.views.logout'),
 
 )
