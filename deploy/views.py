@@ -34,4 +34,5 @@ def site_migrate(request):
     return render_to_response('migrate.html', data)
 
 def home(request):
-    return redirect('/admin')
+    return redirect(urlresolvers.reverse('admin:deploy_site_changelist'))
+
