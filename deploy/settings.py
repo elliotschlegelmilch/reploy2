@@ -5,8 +5,11 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = ()
-
 MANAGERS = ADMINS
+
+BACKUP_PATH = '/var/sdt/backups'
+TEMPORARY_PATH = '/tmp'
+
 
 DATABASES = {
     'default': {
