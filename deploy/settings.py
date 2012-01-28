@@ -108,8 +108,7 @@ ROOT_URLCONF = 'deploy.urls'
 
 CAS_SERVER_URL = 'https://sso.pdx.edu/cas/'
 CAS_IGNORE_REFERER = False
-#CAS_PROXY_CALLBACK = 'http://elbereth.oit.pdx.edu:8000/accounts/login/casProxyCallback'
-#CAS_ADMIN_PREFIX = '/admin'
+CAS_LOGOUT_COMPLETELY = True
 
 TEMPLATE_DIRS = (
     'templates',
