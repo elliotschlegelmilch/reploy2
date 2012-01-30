@@ -215,10 +215,8 @@ def migrate(site, new_platform):
         logger.critical("migrate: trying to migrate ontop of itself.")
         return False
 
-    #backup_result = backup(site)
+    backup_result = backup(site)
 
-    backup_result = True
-    
     if not backup_result:
         logger.critical("migrate: backup didn't succeed, bail")
         return False
