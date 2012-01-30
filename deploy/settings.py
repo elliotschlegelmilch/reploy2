@@ -109,6 +109,7 @@ ROOT_URLCONF = 'deploy.urls'
 CAS_SERVER_URL = 'https://sso.pdx.edu/cas/'
 CAS_IGNORE_REFERER = False
 CAS_LOGOUT_COMPLETELY = True
+SESSION_COOKIE_NAME = 'NO_CACHE'
 
 TEMPLATE_DIRS = (
     'templates',
