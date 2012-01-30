@@ -1,5 +1,6 @@
 from django.conf import settings
-from deploy.util import parse_vget, _remote_ssh, _remote_drush, _rsync_pull, _rsync_push, _check_site
+from deploy.util import parse_vget, parse_status, _remote_ssh, _remote_drush, \
+     _rsync_pull, _rsync_push, _check_site
 from deploy.models import Site, Platform
 
 import copy
@@ -73,6 +74,14 @@ def verify(site):
     else:
         return False
 
+    (status, out, err) = _remote_drush(site, "status")
+    if status == 0:
+        db = parse_status('Database name', out)
+        if not site.database == db:
+            logger.error('verify: updating database from %s to %s for site %s.' %(
+                site.database, db, str(site)))
+            site.database = db
+            site.save()
     return True
     
        
