@@ -54,7 +54,15 @@ class Site(models.Model):
                                              ))
 
     contact_email    = models.CharField(max_length=64, help_text='this populates the site_admin field of the site')
-    staff_email      = models.CharField(max_length=64)
+    staff_email      = models.CharField(max_length=64,
+                                        choices=(
+                                            ('webmaster@pdx.edu', 'Webmaster'),
+                                            ('elliot@pdx.edu', 'Elliot'),
+                                            ('epaul@pdx.edu', 'Eric'),
+                                            ('granert@pdx.edu', 'Therese'),
+                                            ('jhewett@pdx.edu','Jodi'),
+                                            ('bodenmac@pdx.edu','Kristen'),
+                                            ))
     status           = models.ManyToManyField(Status, blank=True)
 
     def save(self, *args, **kwargs):
@@ -148,6 +156,7 @@ class Site(models.Model):
         return os.path.join(self.platform.path, self.short_name)
 
     def settings_php(self, f=None):
+        logger.debug('settings_php; got file=%s, my platform=%s' %(str(f), str(self.platform.host)))
         inc = os.path.join(self.platform.path,'sites', self.platform.host + '.php')
         settings = """<?php
 $_db  = '%(database)s';
