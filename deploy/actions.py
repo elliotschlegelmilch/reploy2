@@ -1,5 +1,7 @@
+from django.conf import settings
 from deploy.util import parse_vget, _remote_ssh, _remote_drush, _rsync_pull, _rsync_push, _check_site
 from deploy.models import Site, Platform
+
 import copy
 import datetime
 import glob
@@ -93,7 +95,7 @@ def cron(site):
     return status == 0
     
 def _backup_db(site, path):
-    tmpdir = '/tmp'
+    tmpdir = settings.TEMPORARY_PATH
 
     (status, remote_tempfile, err) = _remote_ssh(site.platform, 'mktemp %s' % (os.path.join(tmpdir, 'mysqldump.XXXXXXXX')))
     if status > 0:
@@ -163,7 +165,7 @@ def _db_replace(old_site, new_site):
 
 def backup(site):
     """Returns a path to a backup or false if it doesn't succeed."""
-    path = tempfile.mkdtemp(prefix='sdt',dir='/tmp/')
+    path = tempfile.mkdtemp(prefix='sdt',dir=settings.TEMPORARY_PATH)
 
     logger.info('backup: temporary_path=%s' % (path,))
     db = _backup_db(site,path)
@@ -171,7 +173,8 @@ def backup(site):
 
     site_name = site.platform.host + '.' + site.short_name
 
-    friendly_backup_path = os.path.join('/tmp', site_name + '-' + datetime.datetime.now().strftime('%Y%m%d.%H%M%S') + '.tgz')
+    friendly_backup_path = os.path.join(settings.BACKUP_PATH,
+                                        site_name + '-' + datetime.datetime.now().strftime('%Y%m%d.%H%M%S') + '.tgz')
     logger.info('backup: destination_path=%s' %(friendly_backup_path,))
 
     cmd = ['tar','-C', path, '-cpzf', friendly_backup_path, '.']
@@ -194,7 +197,7 @@ def backup(site):
 def _find_backup_file(site):
     """returns the most recent backup tarball."""
     logger.info('_find_backup_file: looking for a recent backup of ' + str(site))
-    backup_location = '/tmp'
+    backup_location = settings.BACKUP_PATH
     site_name = site.platform.host + '.' + site.short_name
     l = glob.glob( os.path.join(backup_location, site_name + '-*') )
     l.sort()
@@ -245,18 +248,18 @@ def migrate(site, new_platform):
         return False
 
     #push the tarball into place.
-    _rsync_push(new_platform, tarball, '/tmp')
+    _rsync_push(new_platform, tarball, settings.TEMPORARY_PATH)
 
     # from the tarball, only extract foo.pdx.edu.baz into the sites/ directory
     # for some reason, these files have a leading ./ which i need to specify when extracting.
     _remote_ssh(new_platform,
-                "tar -zxvf %s -C %s ./%s" % (os.path.join('/tmp/',tarball),
+                "tar -zxvf %s -C %s ./%s" % (os.path.join(settings.TEMPORARY_PATH,tarball),
                                            os.path.join(new_platform.path, 'sites'),
                                            site.platform.host + '.' + site.short_name))
     
     _remote_ssh(new_platform,
-                "tar -zxvf %s -C %s ./%s" % (os.path.join('/tmp/',tarball),
-                                           '/tmp/',
+                "tar -zxvf %s -C %s ./%s" % (os.path.join(settings.TEMPORARY_PATH,tarball),
+                                           settings.TEMPORARY_PATH,
                                            dest_site.database + '.sql'))
 
     #create and fill database
@@ -265,7 +268,7 @@ def migrate(site, new_platform):
     (status, out, err) = _remote_ssh(dest_site.platform,
                                      'mysql %s < %s' % (
                                          dest_site.database,
-                                         os.path.join('/tmp',dest_site.database + '.sql')
+                                         os.path.join(settings.TEMPORARY_PATH, dest_site.database + '.sql')
                                          ))
 
     #rename sitedir to the correct thing.
