@@ -84,8 +84,8 @@ def disable(site):
 
 def cacheclear(site):
     #TODO: cacheclear: needs to handle default
-    (status, out, err) = _remote_drush(site, "vp /%s" %( site.short_name,))
-    (status, out, err) = _remote_drush(site, "cc --yes all")
+    status, _, _ = _remote_drush(site, "vp /%s" %( site.short_name,))
+    status, _, _ = _remote_drush(site, "cc --yes all")
     return status == 0
     
 def cron(site):
@@ -269,7 +269,6 @@ def migrate(site, new_platform):
                                          ))
 
     #rename sitedir to the correct thing.
-
     _remote_ssh(new_platform, "mv %s %s" % (
                     os.path.join(new_platform.path,'sites',site.files_dir),
                     dest_site.site_dir() ))
@@ -282,7 +281,8 @@ def migrate(site, new_platform):
     (status, out, err) = _rsync_push(dest_site.platform,
                                      settings,
                                      os.path.join(dest_site.site_dir(), 'settings.php'))
-
+    #cleanup after our tempfile
+    shutil.rmtree(settings)
 
     
 
