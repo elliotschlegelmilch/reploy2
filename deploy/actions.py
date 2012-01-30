@@ -86,7 +86,7 @@ def disable(site):
 
 def cacheclear(site):
     #TODO: cacheclear: needs to handle default
-    status, _, _ = _remote_drush(site, "vp /%s" %( site.short_name,))
+    status, _, _ = _remote_drush(site, "vpa" )
     status, _, _ = _remote_drush(site, "cc --yes all")
     return status == 0
     
