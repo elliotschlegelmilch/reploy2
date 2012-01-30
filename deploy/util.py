@@ -7,11 +7,20 @@ import urllib2
 logger = logging.getLogger(__name__)
 
 def parse_vget(variable, output):
+    """ Extract a desired variable from a 'drush vget'. """
     for line in output.split('\n'):
         if line.find(variable + ':') > -1:
             quoted = line.replace(variable + ':','').strip()
             return quoted.strip('"')
     return False
+
+def parse_status(variable, output):
+    """ Extract a desired variable from a 'drush status'. """
+    for line in output.split('\n'):
+        if line.find(variable) > -1:
+            quoted = line.split(':')[-1].strip()
+            return quoted.strip('"')
+    return False    
 
 def _remote_ssh(platform, cmd):
     """ returns tuple of (exit status, stdout, sdterr) """
