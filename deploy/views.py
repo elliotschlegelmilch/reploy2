@@ -19,7 +19,7 @@ def site_migrate(request):
         sites = Site.objects.filter(pk__in=site_ids)
         platform = Platform.objects.get(pk=request.POST['new_platform'])
         for site in sites:
-            migrate(site, platform)
+            migrate.delay(site, platform)
 
         # this needs to redirect or something.
         return redirect(

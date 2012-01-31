@@ -1,3 +1,4 @@
+from celery.task import task
 from django.conf import settings
 from deploy.util import parse_vget, parse_status, _remote_ssh, _remote_drush, \
      _rsync_pull, _rsync_push, _check_site
@@ -32,11 +33,17 @@ def check_platform(platform):
     return ok
 
 
-
+@task(ignore_result=True)
 def verify(site):
 
+    e = Event(task_id = verify.request.id, site=site)
+    e.save()
+    
     status = _check_site(site)
     if not status:
+        e.status = False
+        e.message = "Site didn't return 200"
+        e.save()
         return False
             
     (status, out, err) = _remote_drush(site, "vget maintenance_mode")
@@ -84,24 +91,33 @@ def verify(site):
             site.save()
     return True
     
-       
+@task(ignore_result=True)       
 def enable(site):
+    e = Event(task_id = enable.request.id, site=site)
+
     (status, out, err) = _remote_drush(site, "vset --yes maintenance_mode 0")
+    e.message = "Set maintenance Mode."
+    e.status = status == 0
+    e.save()
     return status == 0
 
+@task(ignore_result=True)
 def disable(site):
     (status, out, err) = _remote_drush(site, "vset --yes maintenance_mode 1")
     return status == 0
 
+@task(ignore_result=True)
 def cacheclear(site):
     #TODO: cacheclear: needs to handle default
     status, _, _ = _remote_drush(site, "vpa" )
     status, _, _ = _remote_drush(site, "cc --yes all")
     return status == 0
-    
+
+@task(ignore_result=True)
 def cron(site):
     (status, out, err) = _remote_drush(site, "cron")
     return status == 0
+
     
 def _backup_db(site, path):
     tmpdir = settings.TEMPORARY_PATH
@@ -171,7 +187,7 @@ def _db_replace(old_site, new_site):
         
     return True
 
-
+@task(ignore_result=True)
 def backup(site):
     """Returns a path to a backup or false if it doesn't succeed."""
     path = tempfile.mkdtemp(prefix='sdt',dir=settings.TEMPORARY_PATH)
@@ -218,6 +234,7 @@ def _find_backup_file(site):
     
     return None
 
+@task(ignore_result=True)
 def migrate(site, new_platform):
 
     if site.platform == new_platform:
@@ -363,6 +380,7 @@ def _set_site_permissions(site):
     
     return status == 0
 
+@task(ignore_result=True)
 def create(site, force=False):
     #create db
     logger.info("create: ")
@@ -410,7 +428,7 @@ def create(site, force=False):
 
     logger.info("create: leave")
     
-    
+@task(ignore_result=True)    
 def wipe_site(site):
     logger.debug("wipe_site(): called")
 

@@ -20,19 +20,19 @@ class SiteAdmin(admin.ModelAdmin):
 
     def site_online(self, request, queryset):
         for i in queryset:
-            s = enable(i)
+            s = enable.delay(i)
             if s:
                 messages.add_message(request, messages.INFO, "The site %s is now online." % (i,) )
                 
     def site_offline(self, request, queryset):
         for i in queryset:
-            s = disable(i)
+            s = disable.delay(i)
             if s:
                 messages.add_message(request, messages.INFO, "The site %s is now offline." % (i,) )
                 
     def site_verify(self, request,queryset):
          for i in queryset:
-             s = verify(i)
+             s = verify.delay(i)
              if s:
                  messages.add_message(request, messages.SUCCESS, "%s has been verified." %(i,))
              else:
@@ -40,11 +40,11 @@ class SiteAdmin(admin.ModelAdmin):
 
     def site_create(self, request, queryset):
         for i in queryset:
-            create(i)
+            create.delay(i)
 
     def site_backup(self,request, queryset):
         for i in queryset:
-            s = backup(i)
+            s = backup.delay(i)
             if s:
                 messages.add_message(request,
                                      messages.INFO, "the site, %s, has been backuped." %( i, ))
@@ -52,7 +52,7 @@ class SiteAdmin(admin.ModelAdmin):
 
     def site_cacheclear(self, request, queryset):
         for i in queryset:
-            s = cacheclear(i)
+            s = cacheclear.delay(i)
             if s:
                 messages.add_message(request, messages.INFO, "The cache of site %s has been cleared." % (i,) )
 
@@ -69,7 +69,7 @@ class SiteAdmin(admin.ModelAdmin):
     
     def site_wipe(self, request, queryset):
         for i in queryset:
-            wipe_site(i)
+            wipe_site.delay(i)
             
         
     site_online.short_description = 'Maintenance Mode: disable.'
