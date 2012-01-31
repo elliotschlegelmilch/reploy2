@@ -286,10 +286,10 @@ def migrate(site, new_platform):
                 
     
     #put in a settings.php
-    settings = tempfile.mkstemp()[1]
-    dest_site.settings_php(settings)
+    new_settings_php = tempfile.mkstemp()[1]
+    dest_site.settings_php(new_settings_php)
     (status, out, err) = _rsync_push(dest_site.platform,
-                                     settings,
+                                     new_settings_php,
                                      os.path.join(dest_site.site_dir(), 'settings.php'))
     #cleanup after our tempfile
     shutil.rmtree(settings)
