@@ -249,16 +249,20 @@ def migrate(site, new_platform):
         return False
 
     # find the backup to use
-    tarball = _find_backup_file(site)
-    if tarball == None:
+    tarball_path = _find_backup_file(site)
+    if tarball_path == None:
         logger.critical('migrate: backup succeeded but now where is it? help.')
         return False
 
-    #push the tarball into place.
-    _rsync_push(new_platform, tarball, settings.TEMPORARY_PATH)
+    #push the tarball_path into place.
+    _rsync_push(new_platform, tarball_path, settings.TEMPORARY_PATH)
 
     # from the tarball, only extract foo.pdx.edu.baz into the sites/ directory
     # for some reason, these files have a leading ./ which i need to specify when extracting.
+
+    #also, tarball contains the permenant home of this backup- we need to basename() it
+    tarball = os.path.basename(tarball_path)
+    
     _remote_ssh(new_platform,
                 "tar -zxvf %s -C %s ./%s" % (os.path.join(settings.TEMPORARY_PATH,tarball),
                                            os.path.join(new_platform.path, 'sites'),
