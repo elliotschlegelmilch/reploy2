@@ -3,14 +3,14 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
 from django.http import HttpResponseRedirect, HttpResponse
 
-from deploy.models import Platform, Site, Status
+from deploy.models import Platform, Site, Status, Event
 from deploy.actions import verify, create, enable, disable, wipe_site, cacheclear, backup
 
 
 class SiteAdmin(admin.ModelAdmin):
     list_display = ['link', 'short_name','long_name', 'contact_email',
                     'platform','show_status' ]
-    list_filter = ['platform', 'staff_email', 'status']
+    list_filter = ['platform', 'user', 'status']
     list_display_links = ['short_name']
     search_fields = ['long_name', 'short_name']
     ordering = ['long_name', 'short_name']
@@ -84,6 +84,7 @@ class SiteAdmin(admin.ModelAdmin):
 admin.site.register(Site,SiteAdmin)
 admin.site.register(Platform)
 admin.site.register(Status)
+admin.site.register(Event)
 
 
 
