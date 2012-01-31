@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.auth.models import User
+
 import os.path
 import logging
 
@@ -37,6 +39,15 @@ class Status(models.Model):
 
     ## maintaince mode, preproduction, ok, deprecated
 
+class Event(models.Model):
+
+    site    = models.ForeignKey('Site')
+    user    = models.ForeignKey(User)
+    date    = models.DateTimeField(db_index=True, auto_now=True)
+    status  = models.NullBooleanField(default=None)
+    message = models.TextField(null=True)
+    task_id = models.CharField(max_length=36, primary_key=True)
+
 class Site(models.Model):
     long_name        = models.CharField(max_length=256, blank=True, help_text='this is the site name' )
     short_name       = models.CharField(max_length=32, null=False, blank=False, help_text='this is the site name, e.g.: foo to create the site www.example.org/foo')
@@ -54,15 +65,8 @@ class Site(models.Model):
                                              ))
 
     contact_email    = models.CharField(max_length=64, help_text='this populates the site_admin field of the site')
-    staff_email      = models.CharField(max_length=64,
-                                        choices=(
-                                            ('webmaster@pdx.edu', 'Webmaster'),
-                                            ('elliot@pdx.edu', 'Elliot'),
-                                            ('epaul@pdx.edu', 'Eric'),
-                                            ('granert@pdx.edu', 'Therese'),
-                                            ('jhewett@pdx.edu','Jodi'),
-                                            ('bodenmac@pdx.edu','Kristen'),
-                                            ))
+    user             = models.ForeignKey(User)
+
     status           = models.ManyToManyField(Status, blank=True)
 
     def save(self, *args, **kwargs):
