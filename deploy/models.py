@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 
 import os.path
 import logging
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -40,13 +41,12 @@ class Status(models.Model):
     ## maintaince mode, preproduction, ok, deprecated
 
 class Event(models.Model):
-
     site    = models.ForeignKey('Site')
-    user    = models.ForeignKey(User)
+    user    = models.ForeignKey(User, null=True, blank=True)
     date    = models.DateTimeField(db_index=True, auto_now=True)
     status  = models.NullBooleanField(default=None)
     message = models.TextField(null=True)
-    task_id = models.CharField(max_length=36, primary_key=True)
+    task_id = models.CharField(max_length=36, primary_key=True, default=uuid.uuid1 )
 
 class Site(models.Model):
     long_name        = models.CharField(max_length=256, blank=True, help_text='this is the site name' )
