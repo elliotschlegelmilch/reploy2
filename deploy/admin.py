@@ -80,11 +80,15 @@ class SiteAdmin(admin.ModelAdmin):
     site_wipe.short_description = 'wipe... obliterate.'
     # rename migrate backup restore delete
 
+class EventAdmin(admin.ModelAdmin):
+    list_display = ['site','user','date','status','message','task_id']
+    list_filter = ['user','status']
+    list_display_links = ['task_id']
     
 admin.site.register(Site,SiteAdmin)
 admin.site.register(Platform)
 admin.site.register(Status)
-admin.site.register(Event)
+admin.site.register(Event,EventAdmin)
 
 
 
