@@ -1,7 +1,7 @@
 from deploy.actions import migrate
 from django.core import urlresolvers
 from deploy.forms import Migrate
-from deploy.models import Platform, Site
+from deploy.models import Platform, Site, Event
 
 from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect
