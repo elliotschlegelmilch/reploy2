@@ -19,7 +19,9 @@ def site_migrate(request):
         sites = Site.objects.filter(pk__in=site_ids)
         platform = Platform.objects.get(pk=request.POST['new_platform'])
         for site in sites:
-            migrate.delay(site, platform)
+            ctask = migrate.delay(site, platform)
+            event = Event( task_id=ctask.task_id, site=site, user=request.user)
+            messages.add_message(request, messages.INFO, "The migration of the site %s has been queued: %s" % ( site, ctask.task_id) )
 
         # this needs to redirect or something.
         return redirect(
