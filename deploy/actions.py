@@ -79,11 +79,10 @@ def verify(site):
             site.set_flag('maintenance')
         else:
             site.unset_flag('maintenance')
-
+        site.save()
     else:
         site.unset_flag('maintenance')
         site.save()
-        return (False, "Site is in maintenance mode.")
 
     (status, out, err) = _remote_drush(site, "vget site_mail")
     if status == 0:
@@ -92,6 +91,10 @@ def verify(site):
     else:
         return (False, "Problem fetching drupal variable site_mail.")
 
+    status = _check_site(site)
+    if not status == 200:
+        return (False, "The site returned the code of: %d." %(status,) )
+
     (status, out, err) = _remote_drush(site, "status")
     if status == 0:
         db = parse_status('Database name', out)
@@ -99,10 +102,6 @@ def verify(site):
             site.database, db, str(site)))
         site.database = db
         site.save()
-
-    status = _check_site(site)
-    if not status == 200:
-        return (False, "The site returned the code of: %d." %(status,) )
     
     return (True, "This command completed sucessfully.")
     
