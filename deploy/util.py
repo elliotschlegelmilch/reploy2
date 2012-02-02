@@ -22,6 +22,13 @@ def parse_status(variable, output):
             return quoted.strip('"')
     return False    
 
+def parse_log(output):
+    """ un-cruftify the drush console output. """
+    output = output.replace('[success]','').strip()
+    output = output.replace('  ',' ')
+    return output.strip()
+    
+
 def _remote_ssh(platform, cmd):
     """ returns tuple of (exit status, stdout, sdterr) """
     
