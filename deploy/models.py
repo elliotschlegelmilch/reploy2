@@ -48,6 +48,11 @@ class Event(models.Model):
     message = models.TextField(null=True)
     task_id = models.CharField(max_length=36, primary_key=True, default=uuid.uuid1 )
 
+    def __unicode__(self):
+        return "%s did something to %s and the result was %s (%s)" %( self.user, self.site, self.status, self.task_id)
+
+
+
 class Site(models.Model):
     long_name        = models.CharField(max_length=256, blank=True, help_text='this is the site name' )
     short_name       = models.CharField(max_length=32, null=False, blank=False, help_text='this is the site name, e.g.: foo to create the site www.example.org/foo')
