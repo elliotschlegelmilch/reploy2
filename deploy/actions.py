@@ -231,7 +231,7 @@ def backup(site):
     shutil.rmtree(path)
 
     if status == 0:
-        return (True, "backup is %s" %(frirendly_backup_path,))
+        return (True, "backup is %s" %(friendly_backup_path,))
 
     return (False, output)
 
