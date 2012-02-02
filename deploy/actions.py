@@ -43,7 +43,12 @@ def update_events():
     for event in events:
         task = celery.result.AsyncResult( event.task_id )
         if task.ready():
-            event.status, event.message = task.result
+            if isinstance(task.result, tuple):
+                event.status, event.message = task.result
+            else:
+                #exception :(
+                event.status = False
+                event.message = task.result
             event.save()
 
     purge_time = datetime.datetime.now() - datetime.timedelta(30,0,0)
