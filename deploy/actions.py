@@ -1,8 +1,8 @@
 from celery.task import task
 import celery.result
 from django.conf import settings
-from deploy.util import parse_vget, parse_status, _remote_ssh, _remote_drush, \
-     _rsync_pull, _rsync_push, _check_site
+from deploy.util import parse_vget, parse_status, parse_log
+from deploy.util import _remote_ssh, _remote_drush, _rsync_pull, _rsync_push, _check_site
 from deploy.models import Site, Platform, Event
 
 import copy
@@ -78,51 +78,50 @@ def verify(site):
     else:
         site.unset_flag('maintenance')
         site.save()
-        return False
+        return (False, "Site is in maintenance mode.")
 
     (status, out, err) = _remote_drush(site, "vget site_mail")
     if status == 0:
         site.contact_email = parse_vget('site_mail', out)
         site.save()
     else:
-        return False
+        return (False, "Problem fetching drupal variable site_mail.")
 
     (status, out, err) = _remote_drush(site, "status")
     if status == 0:
         db = parse_status('Database name', out)
-        if not site.database == db:
-            logger.error('verify: updating database from %s to %s for site %s.' %(
-                site.database, db, str(site)))
-            site.database = db
-            site.save()
-    return True
+        logger.error('verify: updating database from %s to %s for site %s.' %(
+            site.database, db, str(site)))
+        site.database = db
+        site.save()
+
+    status = _check_site(site)
+    if not status == 200:
+        return (False, "The site returned the code of: %d." %(status,) )
     
-@task(ignore_result=True)       
+    return (True, "This command completed sucessfully.")
+    
+@task       
 def enable(site):
-    e = Event(task_id = enable.request.id, site=site)
-
     (status, out, err) = _remote_drush(site, "vset --yes maintenance_mode 0")
-    e.message = "Set maintenance Mode."
-    e.status = status == 0
-    e.save()
-    return status == 0
+    return (status == 0, parse_log(out))
 
-@task(ignore_result=True)
+@task
 def disable(site):
     (status, out, err) = _remote_drush(site, "vset --yes maintenance_mode 1")
-    return status == 0
+    return (status == 0, parse_log(out))
 
-@task(ignore_result=True)
+@task
 def cacheclear(site):
     #TODO: cacheclear: needs to handle default
     status, _, _ = _remote_drush(site, "vpa" )
-    status, _, _ = _remote_drush(site, "cc --yes all")
-    return status == 0
+    status, out, _ = _remote_drush(site, "cc --yes all")
+    return (status == 0, parse_log(out))
 
-@task(ignore_result=True)
+@task
 def cron(site):
     (status, out, err) = _remote_drush(site, "cron")
-    return status == 0
+    return (status == 0, parse_log(out))
 
     
 def _backup_db(site, path):
@@ -193,21 +192,28 @@ def _db_replace(old_site, new_site):
         
     return True
 
-@task(ignore_result=True)
+@task
 def backup(site):
     """Returns a path to a backup or false if it doesn't succeed."""
-    path = tempfile.mkdtemp(prefix='sdt',dir=settings.TEMPORARY_PATH)
 
-    logger.info('backup: temporary_path=%s' % (path,))
+    path = tempfile.mkdtemp(prefix='sdt',dir=settings.TEMPORARY_PATH)
+    logger.info('backup: local temporary_path=%s' % (path,))
+
+    status = 1
+
     db = _backup_db(site,path)
     fs = _backup_files(site,path)
 
+    if not (db and fs):
+        shutil.rmtree(path)
+        return (False, "Backup didn't complete.")
+                
     site_name = site.platform.host + '.' + site.short_name
 
     friendly_backup_path = os.path.join(settings.BACKUP_PATH,
                                         site_name + '-' + datetime.datetime.now().strftime('%Y%m%d.%H%M%S') + '.tgz')
     logger.info('backup: destination_path=%s' %(friendly_backup_path,))
-
+    
     cmd = ['tar','-C', path, '-cpzf', friendly_backup_path, '.']
     logger.info('backup: command is: %s' % (cmd,))
     
@@ -216,14 +222,14 @@ def backup(site):
                                stderr=subprocess.STDOUT)
     output,stderr = process.communicate()
     status = process.poll()
-
+    
     #remove temporary directory
     shutil.rmtree(path)
 
     if status == 0:
-        return True
+        return (True, "backup is %s" %(frirendly_backup_path,))
 
-    return False
+    return (False, output)
 
 def _find_backup_file(site):
     """returns the most recent backup tarball."""
@@ -240,18 +246,18 @@ def _find_backup_file(site):
     
     return None
 
-@task(ignore_result=True)
+@task
 def migrate(site, new_platform):
 
     if site.platform == new_platform:
         logger.critical("migrate: trying to migrate ontop of itself.")
-        return False
+        return (False, "trying to migrate ontop of itself.")
 
-    backup_result = backup(site)
+    backup_result, msg = backup(site)
 
     if not backup_result:
         logger.critical("migrate: backup didn't succeed, bail")
-        return False
+        return (False, "migrate: backup didn't succeed, bail. reason: " + msg)
 
     dest_site = None
     q = Site.objects.filter(short_name=site.short_name, platform=new_platform)
@@ -269,13 +275,13 @@ def migrate(site, new_platform):
     
     if not is_clean(dest_site):
         logger.critical('migrate: destination site not clean, bail')
-        return False
+        return (False, "destination site not clean. Wipe destination site")
 
-    # find the backup to use
+    # Find the backup to use
     tarball_path = _find_backup_file(site)
     if tarball_path == None:
         logger.critical('migrate: backup succeeded but now where is it? help.')
-        return False
+        return (False, "backup succeeded but now where is it? help.")
 
     #push the tarball_path into place.
     _rsync_push(new_platform, tarball_path, settings.TEMPORARY_PATH)
@@ -327,6 +333,8 @@ def migrate(site, new_platform):
 
     #search / replace database.
     status = _db_replace(site, dest_site)
+
+    return (True, "Still more work to do.")
 
 
 def is_clean(site):
@@ -386,14 +394,14 @@ def _set_site_permissions(site):
     
     return status == 0
 
-@task(ignore_result=True)
+@task
 def create(site, force=False):
     #create db
     logger.info("create: ")
 
     if not is_clean(site) and not force:
         logger.info("create: forced")
-        return False
+        return (False, "Destination site is not clean.")
 
     if _create_site_database(site) or force:
          
@@ -410,11 +418,14 @@ def create(site, force=False):
                                                            site.profile) )
                 if install_status:
                     site.unset_flag('not installed')
+                    site.set_flag('unqueried')
                     site.save()
                     perm = _set_site_permissions(site)
-                    return True
+                    return (True, output)
+                site.set_flag('error')
+                site.save()
 
-                return False
+                return (False, output)
 
             else:
                 print output
@@ -427,24 +438,25 @@ def create(site, force=False):
 
     else:
         logger.error('create database failed %s' % (site.database,))
-        return False
+        return (False, "creating database failed.")
 
     
     #drush --uri=http://localhost/foo site-install --sites-subdir=localhost.foo  --site-name=foo psu_primary 
 
     logger.info("create: leave")
+    return (True, "unknown")
     
-@task(ignore_result=True)    
+@task    
 def wipe_site(site):
     logger.debug("wipe_site(): called")
 
     if site.short_name == 'default':
         logger.error("wipe_site(): site=%s default sites can't be deleted." %(site,))
-        return False
+        return (False, "default sites can't be deleted.")
 
     if is_clean(site):
         logger.error("wipe_site(): site=%s is already clean." %(site,))
-        return True
+        return (True, "this site is already clean.")
 
 
     #todo: report more nicely about specific exit statuses.
@@ -453,8 +465,8 @@ def wipe_site(site):
     #  shouldn't be necessary normally, but needed for rollback.
 
     _remote_ssh(site.platform, 'chmod -R 777 %s' %(site.site_dir(),))
-    _remote_ssh(site.platform, 'rm -Rf %s' % (site.site_dir(),))
+    (status, err, out ) = _remote_ssh(site.platform, 'rm -Rf %s' % (site.site_dir(),))
     _remote_ssh(site.platform, 'unlink %s' % (site.site_symlink(),))
     _remote_ssh(site.platform, 'mysql -e "drop database %s;"' % (site.database,))
 
-    return True
+    return (True, err + out)
