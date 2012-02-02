@@ -102,4 +102,4 @@ def _check_site(site):
         http_status = e.code
         logger.critical('_check_site: site=%s httpstatus=%d' % (str(site),http_status))
         
-    return http_status == 200
+    return http_status
