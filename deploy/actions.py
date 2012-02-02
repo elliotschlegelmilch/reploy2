@@ -1,4 +1,5 @@
 from celery.task import task
+import celery.result
 from django.conf import settings
 from deploy.util import parse_vget, parse_status, _remote_ssh, _remote_drush, \
      _rsync_pull, _rsync_push, _check_site
@@ -34,18 +35,23 @@ def check_platform(platform):
 
 
 @task(ignore_result=True)
+def update_events():
+    """ update deployment event statuses. purge ones 30 days old."""
+    
+    events = Event.objects.filter(status = None)
+
+    for event in events:
+        task = celery.result.AsyncResult( event.task_id )
+        if task.ready():
+            event.status, event.message = task.result
+            event.save()
+
+    purge_time = datetime.datetime.now() - datetime.timedelta(30,0,0)
+    Event.objects.filter(date__lte = purge_time).delete()
+
+@task
 def verify(site):
 
-    e = Event(task_id = verify.request.id, site=site)
-    e.save()
-    
-    status = _check_site(site)
-    if not status:
-        e.status = False
-        e.message = "Site didn't return 200"
-        e.save()
-        return False
-            
     (status, out, err) = _remote_drush(site, "vget maintenance_mode")
 
     site.unset_flag('unqueried')
