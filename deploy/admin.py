@@ -19,66 +19,67 @@ class SiteAdmin(admin.ModelAdmin):
     exclude =['status']
 
     def site_online(self, request, queryset):
-        for i in queryset:
-            s = enable.delay(i)
-            if s:
-                messages.add_message(request, messages.INFO, "The site %s is now online." % (i,) )
+        for site in queryset:
+            ctask = enable.delay(site)
+            event = Event( task_id=ctask.task_id, site=site, user=request.user)
+            messages.add_message(request, messages.INFO, "%s has been submitted to be removed from maintenance: %s" % ( site, ctask.task_id) )
                 
     def site_offline(self, request, queryset):
-        for i in queryset:
-            s = disable.delay(i)
-            if s:
-                messages.add_message(request, messages.INFO, "The site %s is now offline." % (i,) )
+        for site in queryset:
+            ctask = disable.delay(site)
+            event = Event( task_id=ctask.task_id, site=site, user=request.user)
+            messages.add_message(request, messages.INFO, "%s has been submitted to be entered into maintenance: %s" % ( site, ctask.task_id) )
                 
     def site_verify(self, request,queryset):
-         for i in queryset:
-             s = verify.delay(i)
-             if s:
-                 messages.add_message(request, messages.SUCCESS, "%s has been verified." %(i,))
-             else:
-                 messages.add_message(request, messages.ERROR, "%s could not be verified." % (i,))
+         for site in queryset:
+             ctask = verify.delay(site)
+             event = Event( task_id=ctask.task_id, site=site, user=request.user).save()
+             messages.add_message(request, messages.INFO, "%s has been submitted for verification: %s" % ( site, ctask.task_id) )
 
     def site_create(self, request, queryset):
-        for i in queryset:
-            create.delay(i)
+        for site in queryset:
+            ctask = create.delay(site)
+            event = Event( task_id=ctask.task_id, site=site, user=request.user)
+            messages.add_message(request, messages.INFO, "%s has been submitted to be created: %s" % ( site, ctask.task_id) )
+
+    def site_wipe(self, request, queryset):
+        for site in queryset:
+            ctask = wipe_site.delay(site)
+            event = Event( task_id=ctask.task_id, site=site, user=request.user)
+            messages.add_message(request, messages.INFO, "%s has been submitted to be removed: %s" % ( site, ctask.task_id) )
 
     def site_backup(self,request, queryset):
-        for i in queryset:
-            s = backup.delay(i)
-            if s:
-                messages.add_message(request,
-                                     messages.INFO, "the site, %s, has been backuped." %( i, ))
+        for site in queryset:
+            ctask = backup.delay(site)
+            event = Event( task_id=ctask.task_id, site=site, user=request.user)
+            messages.add_message(request, messages.INFO, "%s has been submitted to be backuped: %s" % ( site, ctask.task_id) )
 
+    def site_restore(self,request, queryset):
+        for site in queryset:
+            ctask = restore.delay(site)
+            event = Event( task_id=ctask.task_id, site=site, user=request.user)
+            messages.add_message(request, messages.INFO, "%s has been submitted to be restored: %s" % ( site, ctask.task_id) )
 
     def site_cacheclear(self, request, queryset):
-        for i in queryset:
-            s = cacheclear.delay(i)
-            if s:
-                messages.add_message(request, messages.INFO, "The cache of site %s has been cleared." % (i,) )
-
-    
-    def json(self, request, queryset):
-        response = HttpResponse(mimetype="text/javascript")
-        serializers.serialize("json", queryset, stream=response)
-        return response
+        for site in queryset:
+            ctask = cacheclear.delay(site)
+            event = Event( task_id=ctask.task_id, site=site, user=request.user)
+            messages.add_message(request, messages.INFO, "The cache of site %s has been cleared: %s" % ( site, ctask.task_id) )
 
     def site_migrate(self, request, queryset):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         ct = ContentType.objects.get_for_model(queryset.model)
         return HttpResponseRedirect("/site-migrate?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
-    
-    def site_wipe(self, request, queryset):
-        for i in queryset:
-            wipe_site.delay(i)
-            
+                      
         
-    site_online.short_description = 'Maintenance Mode: disable.'
-    site_offline.short_description = 'Maintenance Mode: enable.'
-    site_verify.short_description = 'Verify site.'
-    site_create.short_description = 'TEST: create site.'
+    site_backup.short_description     = 'Backup.'
     site_cacheclear.short_description = 'Cache clear.'
-    site_wipe.short_description = 'wipe... obliterate.'
-    # rename migrate backup restore delete
+    site_create.short_description     = 'Install.'
+    site_offline.short_description    = 'Enable.'
+    site_online.short_description     = 'Disable.'
+    site_restore.short_descriptiono   = 'Restore.'
+    site_verify.short_description     = 'Verify.'
+    site_wipe.short_description       = 'Wipe out.'
 
 class EventAdmin(admin.ModelAdmin):
     list_display = ['site','user','date','status','message','task_id']
