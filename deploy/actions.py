@@ -92,6 +92,7 @@ def verify(site):
         site.save()
         return (False, "Problem fetching drupal variable site_mail.")
 
+    #TODO: possibly could need to flush varnish first before checking.
     status = _check_site(site)
     if status == 500 or status == 503:
         site.set_flag('error')
