@@ -105,11 +105,11 @@ class Site(models.Model):
             pass
         
         if status_obj:
-            logger.debug('site::set_flag; flag=%s site=%' %( str(flag), str(self)))
+            logger.debug('site::set_flag; flag=%s site=%s' %( str(flag), str(self)))
             self.status.add( status_obj)
             self.save()
             return True
-        logger.debug('site::set_flag; UNKNOWN flag=%s site=%' %( str(flag), str(self)))
+        logger.debug('site::set_flag; UNKNOWN flag=%s site=%s' %( str(flag), str(self)))
         return False
 
     def unset_flag(self,flag):
@@ -120,12 +120,17 @@ class Site(models.Model):
             pass
 
         if status_obj:
-            logger.debug('site::unset_flag; flag=%s site=%' %( str(flag), str(self)))
+            logger.debug('site::unset_flag; flag=%s site=%s' %( str(flag), str(self)))
             self.status.remove( status_obj)
             self.save()
             return True
-        logger.critical('site::unset_flag; UNKNOWN flag=%s site=%' %( str(flag), str(self)))
+        logger.critical('site::unset_flag; UNKNOWN flag=%s site=%s' %( str(flag), str(self)))
         return False
+
+    def get_flags(self):
+        l = [s.status for s in self.status.all()]
+        logger.debug('site::get_flags: flag=%s site=%s' %( ','.join(l), str(self)))
+        return l
     
     @property
     def installed(self):
