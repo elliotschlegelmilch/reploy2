@@ -474,4 +474,4 @@ def wipe_site(site):
     _remote_ssh(site.platform, 'unlink %s' % (site.site_symlink(),))
     _remote_ssh(site.platform, 'mysql -e "drop database %s;"' % (site.database,))
 
-    return (True, err + out)
+    return (True, str(err) + str(out))
