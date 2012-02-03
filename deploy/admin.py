@@ -90,7 +90,7 @@ class SiteAdmin(admin.ModelAdmin):
     site_wipe.short_description       = 'Wipe out.'
 
 class EventAdmin(admin.ModelAdmin):
-    list_display = ['site','user','date','status','message','task_id']
+    list_display = ['site','event','user','date','status','message','task_id']
     list_filter = ['user','status']
     list_display_links = ['task_id']
     
