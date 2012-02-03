@@ -24,7 +24,10 @@ def parse_status(variable, output):
 
 def parse_log(output):
     """ un-cruftify the drush console output. """
-    output = output.replace('[success]','').strip()
+
+    #this is junk that drush spits out:
+    for token in ['[success]','[warning]']:
+        output = output.replace(token,'').strip()
     output = output.replace('  ',' ')
     return output.strip()
     
