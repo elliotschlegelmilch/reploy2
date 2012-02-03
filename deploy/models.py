@@ -188,7 +188,6 @@ require_once($_inc);
             'local_config': self.local_config if self.local_config else ''}
 
         if f:
-            print f
             fd = file(f, 'w')
             fd.write(settings % site_vars)
             fd.close()

@@ -330,7 +330,7 @@ def migrate(site, new_platform):
                                      new_settings_php,
                                      os.path.join(dest_site.site_dir(), 'settings.php'))
     #cleanup after our tempfile
-    shutil.rmtree(new_settings_php)
+    os.remove(new_settings_php)
 
     
 
