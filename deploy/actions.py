@@ -1,10 +1,10 @@
 from celery.task import task
-import celery.result
 from django.conf import settings
 from deploy.util import parse_vget, parse_status, parse_log
 from deploy.util import _remote_ssh, _remote_drush, _rsync_pull, _rsync_push, _check_site
 from deploy.models import Site, Platform, Event
 
+import celery.result
 import copy
 import datetime
 import glob
@@ -34,7 +34,6 @@ def check_platform(platform):
     return ok
 
 
-@task(ignore_result=True)
 def update_events():
     """ update deployment event statuses. purge ones 30 days old."""
     
