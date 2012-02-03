@@ -92,7 +92,13 @@ def verify(site):
         return (False, "Problem fetching drupal variable site_mail.")
 
     status = _check_site(site)
+    if status == 500 or status == 503:
+        site.set_flag('error')
+    if status == 404:
+        site.set_flag('not installed')
     if not status == 200:
+        site.unset_flag('ok')
+        site.save()
         return (False, "The site returned the code of: %d." %(status,) )
 
     (status, out, err) = _remote_drush(site, "status")
@@ -365,6 +371,7 @@ def is_clean(site):
 
 
 def _create_site_dirs(site):
+    
     #link
     _remote_ssh(site.platform, '/bin/ln -s %s %s' % (
         site.platform.path,
@@ -372,6 +379,8 @@ def _create_site_dirs(site):
         ) )
 
     _remote_ssh(site.platform, 'mkdir %s' % (site.site_dir(), ))
+    _remote_ssh(site.platform, 'chown sdtuser:apache %s' % (site.site_dir(), ))
+    _remote_ssh(site.platform, 'chmod 2775 %s' % (site.site_dir(), ))
     
     for directory in site.site_files_dir():
         _remote_ssh(site.platform, 'mkdir %s' % (directory, ))
@@ -394,7 +403,10 @@ def _create_settings_php(site):
     return status == 0
 
 def _set_site_permissions(site):
-    (status, out, err) = _remote_ssh(site.platform, 'chmod 664 %s;' % ( os.path.join( site.site_dir(), 'settings.php' ),) )
+    # dev servers have different permissions
+    (status, out, err) = _remote_ssh(site.platform, 'chmod %d %s;' % ( 666 if site.platform.use == 'dev' else 664,
+                                                                       os.path.join( site.site_dir(), 'settings.php' ),) )
+        
     (status, out, err) = _remote_ssh(site.platform, 'chmod 775 %s;' % ( site.site_dir(), ) )
     
     return status == 0
