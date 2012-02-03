@@ -88,6 +88,8 @@ def verify(site):
         site.contact_email = parse_vget('site_mail', out)
         site.save()
     else:
+        site.set_flag('error')
+        site.save()
         return (False, "Problem fetching drupal variable site_mail.")
 
     status = _check_site(site)

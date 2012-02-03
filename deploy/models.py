@@ -105,15 +105,26 @@ class Site(models.Model):
             pass
         
         if status_obj:
+            logger.debug('site::set_flag; flag=%s site=%' %( str(flag), str(site)))
             self.status.add( status_obj)
+            self.save()
             return True
+        logger.debug('site::set_flag; UNKNOWN flag=%s site=%' %( str(flag), str(site)))
         return False
 
     def unset_flag(self,flag):
-        status_obj = Status.objects.get(pk=flag)
+        status_obj = None
+        try:
+            status_obj = Status.objects.get(pk=flag)
+        except DoesNotExist:
+            pass
+
         if status_obj:
+            logger.debug('site::unset_flag; flag=%s site=%' %( str(flag), str(site)))
             self.status.remove( status_obj)
+            self.save()
             return True
+        logger.critical('site::unset_flag; UNKNOWN flag=%s site=%' %( str(flag), str(site)))
         return False
     
     @property
