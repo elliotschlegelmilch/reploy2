@@ -342,6 +342,8 @@ def migrate(site, new_platform):
 
     _create_site_dirs(dest_site)
 
+    _set_site_permissions(dest_site)
+
     #search / replace database.
     status = _db_replace(site, dest_site)
 
