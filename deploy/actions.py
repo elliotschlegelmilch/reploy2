@@ -312,7 +312,7 @@ def migrate(site, new_platform):
     _remote_ssh(new_platform,
                 "tar -zxvf %s -C %s ./%s" % (os.path.join(settings.TEMPORARY_PATH,tarball),
                                            settings.TEMPORARY_PATH,
-                                           dest_site.database + '.sql'))
+                                           site.database + '.sql'))
 
     #create and fill database
     #todo: stage database + replacements first.
