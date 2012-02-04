@@ -320,7 +320,7 @@ def migrate(site, new_platform):
     (status, out, err) = _remote_ssh(dest_site.platform,
                                      'mysql %s < %s' % (
                                          dest_site.database,
-                                         os.path.join(settings.TEMPORARY_PATH, dest_site.database + '.sql')
+                                         os.path.join(settings.TEMPORARY_PATH, site.database + '.sql')
                                          ))
 
     #rename sitedir to the correct thing.
