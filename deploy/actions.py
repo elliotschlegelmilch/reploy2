@@ -314,6 +314,11 @@ def migrate(site, new_platform):
                                            settings.TEMPORARY_PATH,
                                            site.database + '.sql'))
 
+    #tarball components extracted: now we can remove it.
+    _remote_ssh(new_platform,
+                 "rm %s" % (os.path.join(settings.TEMPORARY_PATH,tarball),))
+    
+
     #create and fill database
     #todo: stage database + replacements first.
     _create_site_database(dest_site)
