@@ -26,7 +26,7 @@ def parse_log(output):
     """ un-cruftify the drush console output. """
 
     #this is junk that drush spits out:
-    for token in ['[success]','[warning]']:
+    for token in ['[success]','[warning]','[error]']:
         output = output.replace(token,'').strip()
     output = output.replace('  ',' ')
     return output.strip()
