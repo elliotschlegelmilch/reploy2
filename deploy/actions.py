@@ -481,25 +481,23 @@ def create(site, force=False):
     
 @task    
 def wipe_site(site):
-    logger.debug("wipe_site(): called")
-
-    if site.short_name == 'default':
-        logger.error("wipe_site(): site=%s default sites can't be deleted." %(site,))
-        return (False, "default sites can't be deleted.")
+    logger.debug("wipe_site(): site=%s" %(site,) )
 
     if is_clean(site):
         logger.error("wipe_site(): site=%s is already clean." %(site,))
         return (True, "this site is already clean.")
 
-
-    #todo: report more nicely about specific exit statuses.
-    
-    #chmod some files that the installer restricts.
-    #  shouldn't be necessary normally, but needed for rollback.
-
+    # chmod some files that the installer restricts.
     _remote_ssh(site.platform, 'chmod -R 777 %s' %(site.site_dir(),))
     (status, err, out ) = _remote_ssh(site.platform, 'rm -Rf %s' % (site.site_dir(),))
-    _remote_ssh(site.platform, 'unlink %s' % (site.site_symlink(),))
+
     _remote_ssh(site.platform, 'mysql -e "drop database %s;"' % (site.database,))
+
+    # default sites don't have symlinks.
+    if not site.short_name == 'default':
+        _remote_ssh(site.platform, 'unlink %s' % (site.site_symlink(),))
+
+    #TODO: verify the directory is gone.
+    #TODO: find site.site_dir() -type f  for any leftovers. log and return them.
 
     return (True, str(err) + str(out))
