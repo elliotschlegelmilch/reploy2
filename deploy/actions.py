@@ -299,17 +299,19 @@ def migrate(site, new_platform):
 
     #also, tarball contains the permenant home of this backup- we need to basename() it
     tarball = os.path.basename(tarball_path)
-    
-    _remote_ssh(new_platform,
-                "tar -zxvf %s -C %s ./%s" % (os.path.join(settings.TEMPORARY_PATH,tarball),
-                                           os.path.join(new_platform.path, 'sites'),
-                                           site.platform.host + '.' + site.short_name))
-    
-    _remote_ssh(new_platform,
-                "tar -zxvf %s -C %s ./%s" % (os.path.join(settings.TEMPORARY_PATH,tarball),
-                                           settings.TEMPORARY_PATH,
-                                           site.database + '.sql'))
 
+    
+    (status, out, err) = _remote_ssh(new_platform,
+                                     "tar -zxvf %s -C %s ./%s" % (os.path.join(settings.TEMPORARY_PATH,tarball),
+                                                                  os.path.join(new_platform.path, 'sites'),
+                                                                  'default' if site.short_name == 'default' else site.platform.host + '.' +  site.short_name,
+                                                                  ) )
+
+    (status, out, err) = _remote_ssh(new_platform,
+                                     "tar -zxvf %s -C %s ./%s" % (os.path.join(settings.TEMPORARY_PATH,tarball),
+                                                                  settings.TEMPORARY_PATH,
+                                                                  site.database + '.sql'))
+    
     #tarball components extracted: now we can remove it.
     _remote_ssh(new_platform,
                  "rm %s" % (os.path.join(settings.TEMPORARY_PATH,tarball),))
