@@ -359,23 +359,27 @@ def migrate(site, new_platform):
 
 def is_clean(site):
     """ return true of if there is no trace of the site. this includes symlink, database, sites directory"""
-    #TODO: handle default 
+
     clean = True
     message = ''
-    
-    (status, out, err) = _remote_ssh(site.platform, '[ -L %s ]' % (site.site_symlink(),))
-    logger.info("is_clean: site_symlink: %d" % (status,)) 
+
+    (status, out, err) = _remote_ssh(site.platform, 'mysql mysql -e "use %s;"' % (site.database,))
+    logger.info("is_clean: mysql: %d" % (status,) )
     clean = clean and status
 
     (status, out, err) = _remote_ssh(site.platform, '[ -d %s ]' % (site.site_dir(),))
     logger.info("is_clean: site_dir: %d" % (status,) )
     clean = clean and status
 
-    (status, out, err) = _remote_ssh(site.platform, 'mysql mysql -e "use %s;"' % (site.database,))
-    logger.info("is_clean: mysql: %d" % (status,) )
+    if site.short_name == 'default':
+        logger.info("is_clean: default site=%s is clean as it's going to be: %d" % (site, clean,) )
+        return clean
+
+    (status, out, err) = _remote_ssh(site.platform, '[ -L %s ]' % (site.site_symlink(),))
+    logger.info("is_clean: site_symlink: %d" % (status,)) 
     clean = clean and status
 
-    logger.info("is_clean: site is clean: %d" % (clean,) )
+    logger.info("is_clean: site=%s is clean: %d" % (site, clean,) )
     return clean
 
 
