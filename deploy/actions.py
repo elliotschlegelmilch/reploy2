@@ -441,7 +441,8 @@ def create(site, force=False):
         logger.info("create: sitedir: %s" % (site.site_dir(),))
         if _create_site_dirs(site) or force:
 
-            #put in a settings.php
+            site.set_flag('not installed')
+            site.save()
             settings = _create_settings_php(site)
             if settings:
                 install_status, output, err = _remote_drush(site, "site-install -y --site-name='%s' --sites-subdir='%s' --site-email='%s' %s"

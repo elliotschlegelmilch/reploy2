@@ -198,7 +198,7 @@ require_once($_inc);
 """
         site_vars = {
             'database': self.database,
-            'sitedir': self.platform.host + '.' +  self.short_name,
+            'sitedir': '' if self.short_name == 'default' else self.platform.host + '.' +  self.short_name,
             'install': ('NULL' if self.installed else 'TRUE'),
             'inc': inc,
             'local_config': self.local_config if self.local_config else ''}
