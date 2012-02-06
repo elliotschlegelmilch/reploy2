@@ -457,7 +457,7 @@ def create(site, force=False):
                 site.set_flag('error')
                 site.save()
 
-                return (False, output)
+                return (False, str(output) + str(err) )
 
             else:
                 print output
