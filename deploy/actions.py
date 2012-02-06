@@ -175,10 +175,6 @@ def _backup_files(site, path):
 
 def _db_replace(old_site, new_site):
 
-    if old_site.short_name == 'default':
-        logger.critical('_db_replace: Can not run on default sites.')
-        return False
-
     cols = [
         ('field_revision_field_link', 'field_link_url'),
         ('field_revision_body', 'body_value'),
