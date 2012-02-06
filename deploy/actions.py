@@ -187,7 +187,7 @@ def _db_replace(old_site, new_site):
         ('field_revision_field_slide_link', 'field_slide_link_value'),
         ('menu_links', 'link_path'),
         ('block_custom', 'body'),
-        ('variable', 'value'),
+        # ('variable', 'value'),
         ]
 
     for i in cols:
