@@ -388,6 +388,7 @@ def _create_site_dirs(site):
     
     for directory in site.site_files_dir():
         _remote_ssh(site.platform, 'mkdir %s' % (directory, ))
+        _remote_ssh(site.platform, 'chown sdtuser:apache %s' % (directory, ))
         _remote_ssh(site.platform, 'chmod 2775 %s' % (directory, ))
         
     return True
@@ -412,6 +413,8 @@ def _set_site_permissions(site):
                                                                        os.path.join( site.site_dir(), 'settings.php' ),) )
         
     (status, out, err) = _remote_ssh(site.platform, 'chmod 775 %s;' % ( site.site_dir(), ) )
+
+    #TODO: perhaps do chowning that's currently in _create_site_dirs here?
     
     return status == 0
 
