@@ -89,6 +89,10 @@ class Site(models.Model):
         else:
             return u"http://%s/%s" %( self.platform.host, self.short_name )
 
+    @property
+    def url(self):
+        return self.__unicode__()
+    
     def link(self):
         return '<a href="%s">%s</a>' %(self.__unicode__(),self.__unicode__())
     link.allow_tags = True
@@ -210,5 +214,4 @@ require_once($_inc);
         
             
         return settings % site_vars
-
 

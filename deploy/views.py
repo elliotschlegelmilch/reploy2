@@ -42,7 +42,7 @@ def site_migrate(request):
 
 
 def platform_status(request, platform=None):
-    p = get_object_or_404( Platform, pk=Platform)
+    p = get_object_or_404( Platform, pk=platform)
     _heading = ['url', 'short_name', 'long_name', 'database', 'contact_email']
     filename = "platform.status.%s.%s.csv" %( platform, datetime.datetime.now().strftime(settings.CSV_FORMAT))
 
