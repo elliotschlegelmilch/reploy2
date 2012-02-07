@@ -448,7 +448,7 @@ def create(site, force=False):
                                                            'default' if site.short_name == 'default' else site.platform.host + '.' +  site.short_name,
                                                            site.contact_email,
                                                            site.profile) )
-                if install_status:
+                if install_status == 0:
                     site.unset_flag('not installed')
                     site.set_flag('unqueried')
                     site.save()
