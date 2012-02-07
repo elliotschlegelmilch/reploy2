@@ -1,12 +1,11 @@
 from deploy.actions import migrate
 from deploy.forms import Migrate
 from deploy.models import Platform, Site, Event
+from django.conf import settings
 from django.contrib import messages
 from django.core import urlresolvers
-
 from django.http import HttpResponse
-from django.shortcuts import render_to_response, redirect
-from django.conf import settings
+from django.shortcuts import render_to_response, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_protect
 
 import csv
@@ -43,25 +42,20 @@ def site_migrate(request):
 
 
 def platform_status(request, platform=None):
-    p = Platform.objects.get(pk=platform)
+    p = get_object_or_404( Platform, pk=Platform)
     _heading = ['url', 'short_name', 'long_name', 'database', 'contact_email']
-    
-    response = HttpResponse(mimetype='text/csv')
     filename = "platform.status.%s.%s.csv" %( platform, datetime.datetime.now().strftime(settings.CSV_FORMAT))
+
+    response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename=%s' %( filename,)
-    
     writer = csv.writer(response)
 
-    
     writer.writerow( _heading )
+
     for s in Site.objects.filter(platform = p):
         writer.writerow([ s.__getattribute__(column) for column in _heading ])
-        
-    return response
-    
-    
 
-    
+    return response
 
 def home(request):
     return redirect(urlresolvers.reverse('admin:deploy_site_changelist'))
