@@ -1,4 +1,4 @@
-from deploy.actions import migrate, drush, check_platform
+from deploy.actions import migrate, drush, update_events
 from deploy.forms import Migrate, Drush
 from deploy.models import Platform, Site, Event
 from django.conf import settings
@@ -14,8 +14,10 @@ import datetime
 def site_manage(request, sid):
     site = get_object_or_404( Site, pk=sid)
     events = Event.objects.filter( site= site ).order_by('date')
-    
-    update_events()
+    try:
+        update_events()
+    except:
+        pass
     
     data = {'events': events,
             'user'  : request.user,
