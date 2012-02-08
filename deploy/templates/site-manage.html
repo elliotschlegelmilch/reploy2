@@ -1,0 +1,60 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block extrastyle %}
+{% load adminmedia %}
+<link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/forms.css" />
+<style>
+#header{ background-color: #333940; border-bottom: solid 3px #999; }
+#branding h1{ color: #fff; }
+.module h2, .module caption, .inline-group h2 { background:#ccc; color: #333940; }
+a.section:link, a.section:visited { color: #666666; }
+.dashboard #content { width: auto; }
+</style>
+{% endblock %}
+
+{% block sidebar %} {% endblock %}
+ 
+{% block content %}
+
+<h1> Details for site: {{ site.link|safe }} </h1>   
+<form action="" method="post">
+<div>
+   <fieldset class="module aligned">
+          <div class="form-row">
+            <label for="delete"> Removal </label>
+            <input type='text' maxlength='6' name="delete_confirm">
+            <input type='submit' name="_delete" value="delete">
+
+            <p class="help">
+              To confirm site deletion, type <i>delete</i> in the box
+              and press the delete button. There is no further
+              confirmation.
+            </p>
+        </div>
+      </fieldset>
+
+
+</div>
+<table>
+      {% for event in events %}
+        <tr>
+          <td>{{ event.date }}</td>
+          <td>{{ event.status }}</td>
+          <td>{{ event.message|linebreaks }}</td>
+          <td>{{ event.task_id }} </td>
+        </tr>
+
+    {% endfor %}
+</table>
+
+<div class="submit-row">
+<input type="submit" value="Save" class="default" name="_save">
+</div>
+
+
+</form>
+{% endblock %}
+
+
+

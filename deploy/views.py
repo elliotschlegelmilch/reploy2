@@ -6,12 +6,25 @@ from django.contrib import messages
 from django.core import urlresolvers
 from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect, get_object_or_404
-from django.views.decorators.csrf import csrf_protect
 
 import csv
 import datetime
 
-#@csrf_protect
+
+def site_manage(request, sid):
+    site = get_object_or_404( Site, pk=sid)
+    events = Event.objects.filter( site= site ).order_by('date')
+
+    print request.POST
+    
+    data = {'events': events,
+            'user'  : request.user,
+            'site'  : site,
+            }
+    return render_to_response('site-manage.html', data)
+    
+
+
 def site_migrate(request):
 
     form = Migrate(request.POST if request.POST else None)
@@ -42,7 +55,6 @@ def site_migrate(request):
 
 
 def site_drush(request):
-
     form = Drush(request.POST if request.POST else None)
 
     if form.is_valid():
