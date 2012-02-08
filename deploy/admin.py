@@ -15,7 +15,7 @@ class SiteAdmin(admin.ModelAdmin):
     search_fields = ['long_name', 'short_name']
     ordering = ['long_name', 'short_name']
     actions = ['site_online', 'site_offline', 'site_verify', 'site_create',
-               'site_cacheclear', 'site_migrate', 'site_wipe', 'site_backup']
+               'site_cacheclear', 'site_migrate', 'site_wipe', 'site_backup', 'site_drush']
     exclude =['status']
 
     def site_online(self, request, queryset):
@@ -73,16 +73,22 @@ class SiteAdmin(admin.ModelAdmin):
             event = Event( task_id=ctask.task_id, site=site, user=request.user, event='cacheclear')
             event.save()
             messages.add_message(request, messages.INFO, "The cache of site %s has been cleared: %s" % ( site, ctask.task_id) )
-
+ 
     def site_migrate(self, request, queryset):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         ct = ContentType.objects.get_for_model(queryset.model)
         return HttpResponseRedirect("/site-migrate?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
-                      
+
+    def site_drush(self, request, queryset):
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        ct = ContentType.objects.get_for_model(queryset.model)
+        return HttpResponseRedirect("/site-drush?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
+                     
         
     site_backup.short_description     = 'Backup.'
     site_cacheclear.short_description = 'Cache clear.'
     site_create.short_description     = 'Install.'
+    site_drush.short_description      = 'Drush.'
     site_offline.short_description    = 'Enable.'
     site_online.short_description     = 'Disable.'
     site_restore.short_descriptiono   = 'Restore.'

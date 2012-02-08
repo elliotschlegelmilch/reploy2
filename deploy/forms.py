@@ -7,4 +7,8 @@ class Migrate(forms.Form):
                                            #widget=Select(
                                            #attrs={'size':'1'}, choices=Platform.objects.all())
                                                   )
+
+class Drush(forms.Form):
+    drush_command = forms.CharField()
+
     
