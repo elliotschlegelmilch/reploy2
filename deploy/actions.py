@@ -53,9 +53,10 @@ def update_events():
     purge_time = datetime.datetime.now() - datetime.timedelta(30,0,0)
     Event.objects.filter(date__lte = purge_time).delete()
 
+@task
 def drush(site, cmd):
     (status, out, err) = _remote_drush(site, cmd)
-    return (status==0, "%s\n%s" %(str(out), str(err))
+    return (status==0, "%s\n%s" %(str(out), str(err)))
 
 @task
 def verify(site):
