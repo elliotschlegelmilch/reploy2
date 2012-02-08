@@ -246,7 +246,7 @@ def backup(site):
 
 def _find_backup_file(site):
     """returns the most recent backup tarball."""
-    logger.info('_find_backup_file: looking for a recent backup of ' + str(site))
+    logger.info('_find_backup_file: looking for a recent backup of site=%s' % (str(site),) )
     backup_location = settings.BACKUP_PATH
     site_name = site.platform.host + '.' + site.short_name
     l = glob.glob( os.path.join(backup_location, site_name + '-*') )
@@ -255,8 +255,13 @@ def _find_backup_file(site):
     
     if len(l) > 0:
         logger.info('_find_backup_file: found a backup: ' + l[0])
+        if len(l) > 1:
+            logger.critical('_find_backup_file: site=% has %d backups. ' % (str(site), len(l)) )
+            for f in l[2:]:
+                logger.critical('_find_backup_file: site=% removing backup=%s' % (str(site), f) )
+                os.remove(f)
+
         return l[0]
-    
     return None
 
 @task
