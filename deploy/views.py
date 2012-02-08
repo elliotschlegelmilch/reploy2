@@ -15,7 +15,7 @@ def site_manage(request, sid):
     site = get_object_or_404( Site, pk=sid)
     events = Event.objects.filter( site= site ).order_by('date')
     
-    check_platform()
+    update_events()
     
     data = {'events': events,
             'user'  : request.user,
