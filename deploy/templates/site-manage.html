@@ -10,6 +10,11 @@
 .module h2, .module caption, .inline-group h2 { background:#ccc; color: #333940; }
 a.section:link, a.section:visited { color: #666666; }
 .dashboard #content { width: auto; }
+.tt {font-family: Menlo, courier, monospace;}
+.row-None  {background-color: #BDE5F8; }
+.row-True  {background-color: #DFF2BF; }
+.row-False {background-color: #FFBABA; }
+
 </style>
 {% endblock %}
 
@@ -38,10 +43,11 @@ a.section:link, a.section:visited { color: #666666; }
 </div>
 <table>
       {% for event in events %}
-        <tr>
+        <tr class="row-{{ event.status }}">
           <td>{{ event.date }}</td>
-          <td>{{ event.status }}</td>
-          <td>{{ event.message|linebreaks }}</td>
+          <td>{% if event.status %} {{ event.status }} {% else %} &mdash; {% endif %} </td>
+          <td>{{ event.event }}</td>
+          <td class="tt">{% if event.message %} {{ event.message|linebreaks }} {% else %} &mdash; {% endif %}</td>
           <td>{{ event.task_id }} </td>
         </tr>
 
