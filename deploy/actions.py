@@ -169,6 +169,14 @@ def _backup_db(site, path):
    
     return False
 
+@task
+def _varnish_flush(site):
+    """ flush the cache for a given site, or all sites for 'default'."""
+
+    
+
+    pass
+
 def _backup_files(site, path):
     (s,o,e) = _rsync_pull(site.platform, site.site_dir(), path)
     if s == 0:
