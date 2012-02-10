@@ -31,8 +31,19 @@ class Platform(models.Model):
 
 class Status(models.Model):
     status = models.CharField(max_length=48, primary_key=True)
-    _valid = ['deprecated', 'maintenance', 'ok', 'preproduction', 'unqueried','not installed']
+    _states = {
+        'deprecated': "This site is no longer in use and may be removed at any time.",
+        'maintenance': "This site has been put into maintenance; it may be broken or not be ready to be published",
+        'not installed': "The site is clean; it may be deleted or installed.",
+        'ok': "No problems with the site are detected.",
+        'preproduction' : "Undergoing content or other development.",
+        'unqueried': "No additional information is available.",
+        }
 
+    @property
+    def description(self):
+        return self._states[self.status]
+    
     def __str__(self):
         return self.status
     def __unicode__(self):
@@ -134,7 +145,7 @@ class Site(models.Model):
     def get_flags(self):
         l = [s.status for s in self.status.all()]
         logger.debug('site::get_flags: flag=%s site=%s' %( ','.join(l), str(self)))
-        return l
+        return self.status.all()
     
     @property
     def installed(self):
