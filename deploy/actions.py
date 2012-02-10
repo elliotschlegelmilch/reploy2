@@ -457,9 +457,12 @@ def create(site, force=False):
         logger.info("create: sitedir: %s" % (site.site_dir(),))
         if _create_site_dirs(site) or force:
 
+            # 'not installed' sites don't use the shared tables. this is necessary when installing.
+            # after installed, use the shared tables so cas users may log in.
             site.set_flag('not installed')
             site.save()
             settings = _create_settings_php(site)
+
             if settings:
                 install_status, output, err = _remote_drush(site, "site-install -y --site-name='%s' --sites-subdir='%s' --site-email='%s' %s"
                                                         %( site.long_name,
@@ -470,6 +473,8 @@ def create(site, force=False):
                     site.unset_flag('not installed')
                     site.set_flag('unqueried')
                     site.save()
+                    # this updated settings.php uses the shared tables.
+                    settings = _create_settings_php(site)
                     perm = _set_site_permissions(site)
                     return (True, output)
                 site.set_flag('error')
