@@ -23,9 +23,10 @@ a.section:link, a.section:visited { color: #666666; }
 {% block content %}
 
 <h1> Details for site: {{ site.link|safe }} </h1>   
-<form action="" method="post">
-<div>
-   <fieldset class="module aligned">
+ <form action="" method="post">
+      <div>
+	<ul>
+	  <li>
           <div class="form-row">
             <label for="delete"> Removal </label>
             <input type='text' maxlength='6' name="delete_confirm">
@@ -36,9 +37,21 @@ a.section:link, a.section:visited { color: #666666; }
               and press the delete button. There is no further
               confirmation.
             </p>
-        </div>
-      </fieldset>
+	  </div>
+	</li>
+	<li>
+	<div class="form-row">
+	  <label for="new_name"> New Name</label>
+	  <input type="text" name="new_name">
+	  <input type="submit" name="_clone" value="clone">
+	  <input type="submit" name="_rename" value="rename">
+	    </div>
+        </li>
 
+<li>
+</li>
+
+</ul>
 
 </div>
 <table>

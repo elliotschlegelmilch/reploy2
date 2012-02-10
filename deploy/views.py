@@ -9,7 +9,7 @@ from django.shortcuts import render_to_response, redirect, get_object_or_404
 
 import csv
 import datetime
-
+import json
 
 def site_manage(request, sid):
     site = get_object_or_404( Site, pk=sid)
@@ -101,6 +101,13 @@ def platform_status(request, platform=None):
         writer.writerow([ s.__getattribute__(column).encode('ascii','replace') for column in _heading ])
 
     return response
+
+def ajax(request):
+    data = {'s':1 }
+
+    return HttpResponse( json.dumps(data),
+                         'application/json',
+                         )
 
 def home(request):
     return redirect(urlresolvers.reverse('admin:deploy_site_changelist'))
