@@ -52,6 +52,8 @@ class Event(models.Model):
     def __unicode__(self):
         return "%s did something to %s and the result was %s (%s)" %( self.user, self.site, self.status, self.task_id)
 
+    def simple(self):
+        return {'status' : self.status, 'message' : self.message}
 
 
 class Site(models.Model):
