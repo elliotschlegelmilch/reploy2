@@ -103,11 +103,14 @@ def platform_status(request, platform=None):
     return response
 
 def ajax(request):
-    data = {'s':1 }
-
-    return HttpResponse( json.dumps(data),
-                         'application/json',
-                         )
+    data = None
+    task_id = request.POST.get(u'event')
+    if not task_id == None:
+        event = Event.objects.filter( pk=task_id )[0]
+        if event.event=='status':
+            data = event.simple()
+    
+    return HttpResponse( json.dumps( data ), 'application/json' )
 
 def home(request):
     return redirect(urlresolvers.reverse('admin:deploy_site_changelist'))
