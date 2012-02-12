@@ -71,6 +71,14 @@ def _remote_drush(site, args):
                                                              uri.strip(), args)
     return _remote_ssh(site.platform, cmd)
 
+def _remote_mysql(site, query):
+    """ run a mysql query on the site's database. """
+
+    cmd = 'mysql %s -ss -e "%s"' % (site.database, query)
+    (status, out,err) = _remote_ssh(site.platform, cmd)
+    return out
+    
+
 def _rsync_pull(platform, remote, local):
     path = "%s:%s" % (platform.canonical_host, remote)
     cmd = ['rsync','--archive', '--numeric-ids', '-pv', path, local]
