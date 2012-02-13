@@ -570,7 +570,10 @@ def get_cron_last(site):
     return (True, {'cron_last': time_format })
     
 def get_site_status(site):
-    e = Event( task_id=get_site_du.delay(site).task_id,
-               site=site,
-               event='status')
-    e.save()
+    du = Event( task_id=get_site_du.delay(site).task_id,    site=site,event='status')
+    nc = Event( task_id=get_node_count.delay(site).task_id, site=site,event='status')
+    cr = Event( task_id=get_cron_last.delay(site).task_id,  site=site,event='status')
+
+    du.save()
+    nc.save()
+    cr.save()

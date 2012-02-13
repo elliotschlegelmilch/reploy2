@@ -42,7 +42,11 @@ check_done = function(event) {
 return true;
       }})};
 
-l = ['661d7005-54dd-11e1-87ef-001ff3ca9e21']
+l = [ {% for task in callbacks %} '{{ task.task_id }}'{% if not forloop.last %}, {%endif%}{%endfor%} ]
+
+
+
+
 // function my_asy(e) {  timers[e] = setInterval( function() { check_done(e); }, 2000); }
 
 $.each(l, function(i,item) { timers[item] = setInterval( function() { check_done(item); }, 2000);} );
@@ -61,7 +65,7 @@ $.each(l, function(i,item) { timers[item] = setInterval( function() { check_done
 <dt> Files </dt><dd id="file_count">&mdash;</dd>
 <dt> Users </dt><dd id="user_count">&mdash;</dd>
 <dt> Cron  </dt><dd id="cron_run">&mdash;</dd>
-<dt> Disk utilization </dt><dd id="du">&mdash;</dd>
+<dt> Disk utilization </dt><dd id="du"> <meter value="77" min="0"  max="100"> &mdash; </meter> </dd>
 </dl>
 
  <form action="" method="post">

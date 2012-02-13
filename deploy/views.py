@@ -14,6 +14,7 @@ import json
 def site_manage(request, sid):
     site = get_object_or_404( Site, pk=sid)
     events = Event.objects.filter( site= site ).order_by('date')
+    callbacks = Event.objects.filter( site= site, event='status' ).order_by('date')
     try:
         update_events()
     except:
@@ -22,6 +23,7 @@ def site_manage(request, sid):
     data = {'events': events,
             'user'  : request.user,
             'site'  : site,
+            'callbacks' : callbacks,
             }
     return render_to_response('site-manage.html', data)
     
