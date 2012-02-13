@@ -103,12 +103,14 @@ def platform_status(request, platform=None):
     return response
 
 def ajax(request):
-    data = None
+    data = {'status': False }
     task_id = request.POST.get(u'event')
     if not task_id == None:
-        event = Event.objects.filter( pk=task_id )[0]
-        if event.event=='status':
-            data = event.simple()
+        events = Event.objects.filter( pk=task_id )
+        if len(events) == 1:
+            event = events[0]
+            if event.event=='status':
+                data = event.simple()
     
     return HttpResponse( json.dumps( data ), 'application/json' )
 
