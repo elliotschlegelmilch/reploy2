@@ -3,6 +3,7 @@
 
 {% block extrastyle %}
 {% load adminmedia %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
 <link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/forms.css" />
 <style>
 #header{ background-color: #333940; border-bottom: solid 3px #999; }
@@ -22,6 +23,33 @@ a.section:link, a.section:visited { color: #666666; }
  
 {% block content %}
 
+<script>
+  $.ajaxSetup({
+    url: "/ajax",
+    dataType: "json",
+    global: false,
+    type: "POST"
+   });
+
+timers = {};
+
+check_done = function(event) { 
+         $.ajax({ data: {event: event},
+                  success: function(d) {
+      console.log(d);
+             if (d.status != null) { clearInterval( timers[event]);  }
+             if (d.status) {     }
+return true;
+      }})};
+
+l = ['661d7005-54dd-11e1-87ef-001ff3ca9e21']
+// function my_asy(e) {  timers[e] = setInterval( function() { check_done(e); }, 2000); }
+
+$.each(l, function(i,item) { timers[item] = setInterval( function() { check_done(item); }, 2000);} );
+</script>
+
+
+
 <h1> Details for site: {{ site.link|safe }} </h1>   
 <h2> {{ site.long_name }} </h2>
 <dl>
@@ -36,9 +64,11 @@ a.section:link, a.section:visited { color: #666666; }
 <dt> Disk utilization </dt><dd id="du">&mdash;</dd>
 </dl>
 
-<form action="" method="post">
-<div>
-   <fieldset class="module aligned">
+ <form action="" method="post">
+      <div>
+	<ul>
+	  <li>
+
           <div class="form-row">
             <label for="delete"> Removal </label>
             <input type='text' maxlength='6' name="delete_confirm">
@@ -49,9 +79,21 @@ a.section:link, a.section:visited { color: #666666; }
               and press the delete button. There is no further
               confirmation.
             </p>
-        </div>
-      </fieldset>
+	  </div>
+	</li>
+	<li>
+	<div class="form-row">
+	  <label for="new_name"> New Name</label>
+	  <input type="text" name="new_name">
+	  <input type="submit" name="_clone" value="clone">
+	  <input type="submit" name="_rename" value="rename">
+	    </div>
+        </li>
 
+<li>
+</li>
+
+</ul>
 
 </div>
 <table>

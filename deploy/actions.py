@@ -2,6 +2,7 @@ from celery.task import task
 from django.conf import settings
 from deploy.util import parse_vget, parse_status, parse_log
 from deploy.util import _remote_ssh, _remote_drush, _rsync_pull, _rsync_push, _check_site
+from deploy.util import _remote_mysql
 from deploy.models import Site, Platform, Event
 
 import celery.result
@@ -542,3 +543,34 @@ def get_celery_worker_status():
     except ImportError as e:
         d = { ERROR_KEY: str(e)}
     return d
+
+@task
+def get_site_du(site):
+
+    (status, out,err) = _remote_ssh(site.platform,
+                                    "du -ks %s" % (site.site_dir(),) )
+    if status == 0:
+        tmp = out.split('\t')
+        kilobytes = tmp[0]
+        return (True, {'disk_usage': int(kilobytes)})
+@task
+def get_node_count(site):
+    out = _remote_mysql(site, "select count(distinct nid) as nodes from node;")
+    if not out == None:
+        return (True, {'node_count': int(out) })
+    
+    return (False, "Query error")
+    
+@task
+def get_cron_last(site):
+    (status, out, err) = _remote_drush(site, "vget cron_last") 
+    cron_last = parse_vget('cron_last', out)
+    t = datetime.datetime.fromtimestamp(cron_last)
+    time_format = t.strtime(settings.TIME_FORMAT)
+    return (True, {'cron_last': time_format })
+    
+def get_site_status(site):
+    e = Event( task_id=get_site_du.delay(site).task_id,
+               site=site,
+               event='status')
+    e.save()

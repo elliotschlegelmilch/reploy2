@@ -10,6 +10,7 @@ MANAGERS = ADMINS
 BACKUP_PATH = '/var/sdt/backups'
 TEMPORARY_PATH = '/tmp'
 CSV_FORMAT = '%F:%T'
+TIME_FORMAT = '%A, %d %B %Y, %r'
 
 DATABASES = {
     'default': {
