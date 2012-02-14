@@ -33,6 +33,7 @@ class Status(models.Model):
     status = models.CharField(max_length=48, primary_key=True)
     _states = {
         'deprecated': "This site is no longer in use and may be removed at any time.",
+        'error': "A serious error has been detected with this site. It may be necessary to fix manually or re-install",        
         'maintenance': "This site has been put into maintenance; it may be broken or not be ready to be published",
         'not installed': "The site is clean; it may be deleted or installed.",
         'ok': "No problems with the site are detected.",
