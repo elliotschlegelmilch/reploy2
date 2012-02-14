@@ -565,7 +565,7 @@ def get_node_count(site):
 def get_cron_last(site):
     (status, out, err) = _remote_drush(site, "vget cron_last") 
     cron_last = parse_vget('cron_last', out)
-    t = datetime.datetime.fromtimestamp(cron_last)
+    t = datetime.datetime.fromtimestamp(float(cron_last))
     time_format = t.strtime(settings.TIME_FORMAT)
     return (True, {'cron_last': time_format })
     
