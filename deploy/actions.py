@@ -265,7 +265,7 @@ def _find_backup_file(site):
     if len(l) > 0:
         logger.info('_find_backup_file: found a backup: ' + l[0])
         if len(l) > 1:
-            logger.critical('_find_backup_file: site=% has %d backups. ' % (str(site), len(l)) )
+            logger.critical('_find_backup_file: site=%s has %d backups. ' % (str(site), len(l)) )
             for f in l[2:]:
                 logger.critical('_find_backup_file: site=%s removing old backup=%s' % (str(site), f) )
                 os.remove(f)
