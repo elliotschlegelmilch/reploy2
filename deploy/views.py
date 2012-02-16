@@ -1,6 +1,6 @@
-from deploy.actions import migrate, drush, update_events
+from deploy.actions import migrate, drush, update_events, get_site_status
 from deploy.forms import Migrate, Drush
-from deploy.models import Platform, Site, Event
+from deploy.models import Platform, Site, Event, Statistic
 from django.conf import settings
 from django.contrib import messages
 from django.core import urlresolvers
@@ -15,6 +15,9 @@ def site_manage(request, sid):
     site = get_object_or_404( Site, pk=sid)
     events = Event.objects.filter( site= site ).order_by('date')
     callbacks = Event.objects.filter( site= site, event='status' ).order_by('date')
+    
+    get_site_status.delay(site)
+    
     try:
         update_events()
     except:
@@ -106,13 +109,15 @@ def platform_status(request, platform=None):
 
 def ajax(request):
     data = {'status': False }
-    task_id = request.POST.get(u'event')
-    if not task_id == None:
-        events = Event.objects.filter( pk=task_id )
-        if len(events) == 1:
-            event = events[0]
-            if event.event=='status':
-                data = event.simple()
+    site  = request.POST.get(u'site')
+
+    statistics = Statistic.objects.filter(site=site)
+    if len(statistics) > 0:
+        stats = {}
+        data['status'] = True
+        for s in statistics:
+            stats.update( {s.metric: s.value} )
+        data['stats'] = stats
     
     return HttpResponse( json.dumps( data ), 'application/json' )
 

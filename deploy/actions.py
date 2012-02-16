@@ -3,7 +3,7 @@ from django.conf import settings
 from deploy.util import parse_vget, parse_status, parse_log
 from deploy.util import _remote_ssh, _remote_drush, _rsync_pull, _rsync_push, _check_site
 from deploy.util import _remote_mysql
-from deploy.models import Site, Platform, Event
+from deploy.models import Site, Platform, Event, Statistic
 
 import celery.result
 import copy
@@ -36,13 +36,13 @@ def check_platform(platform):
 
 
 def update_events():
-    """ update deployment event statuses. purge ones 30 days old."""
+    """ update deployment event statuses. purge ones 7 days old."""
     
     events = Event.objects.filter(status = None)
 
     for event in events:
         task = celery.result.AsyncResult( event.task_id )
-        if task.ready():
+        if task.ready() and not event.event.is_statistic:
             if isinstance(task.result, tuple):
                 event.status, event.message = task.result
             else:
@@ -51,8 +51,26 @@ def update_events():
                 event.message = task.result
             event.save()
 
-    purge_time = datetime.datetime.now() - datetime.timedelta(30,0,0)
+    purge_time = datetime.datetime.now() - datetime.timedelta(7,0,0)
     Event.objects.filter(date__lte = purge_time).delete()
+
+def update_statistic():
+    i = 0
+    for event in Event.objects.filter(status = None):
+        task = celery.result.AsyncResult( event.task_id )
+        if task.ready() and event.event.is_statistic:
+            status, d = task.result
+            for m in d:
+                i = i + 1
+                s = Statistic( site   = event.site,
+                               date   = event.date,
+                               metric = m,
+                               value  = d[m]
+                               )
+                s.save()
+    return i
+
+    
 
 @task
 def drush(site, cmd):
@@ -545,6 +563,21 @@ def get_celery_worker_status():
     return d
 
 @task
+def get_site_status(site):
+    result = {}
+    
+    du = get_site_du(site)
+    nc = get_node_count(site)
+    cr = get_cron_last(site)
+
+    result.update(du)
+    result.update(nc)
+    result.update(cr)
+
+    return result
+
+
+
 def get_site_du(site):
 
     (status, out,err) = _remote_ssh(site.platform,
@@ -552,28 +585,22 @@ def get_site_du(site):
     if status == 0:
         tmp = out.split('\t')
         kilobytes = tmp[0]
-        return (True, {'disk_usage': int(kilobytes)})
-@task
+        return {'disk_usage': int(kilobytes)}
+    return {}
+
 def get_node_count(site):
     out = _remote_mysql(site, "select count(distinct nid) as nodes from node;")
     if not out == None:
-        return (True, {'node_count': int(out) })
+        return {'node_count': int(out) }
+    return {}
     
-    return (False, "Query error")
-    
-@task
 def get_cron_last(site):
     (status, out, err) = _remote_drush(site, "vget cron_last") 
     cron_last = parse_vget('cron_last', out)
-    t = datetime.datetime.fromtimestamp(float(cron_last))
-    time_format = t.strtime(settings.TIME_FORMAT)
-    return (True, {'cron_last': time_format })
+    if cron_last:
+        t = datetime.datetime.fromtimestamp(float(cron_last))
+        time_format = t.strftime(settings.TIME_FORMAT)
+        return {'cron_last': time_format }
+    else:
+        return {}
     
-def get_site_status(site):
-    du = Event( task_id=get_site_du.delay(site).task_id,    site=site,event='status')
-    nc = Event( task_id=get_node_count.delay(site).task_id, site=site,event='status')
-    cr = Event( task_id=get_cron_last.delay(site).task_id,  site=site,event='status')
-
-    du.save()
-    nc.save()
-    cr.save()

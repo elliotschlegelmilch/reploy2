@@ -50,7 +50,18 @@ class Status(models.Model):
     def __unicode__(self):
         return self.status
 
-    ## maintaince mode, preproduction, ok, deprecated
+class Statistic(models.Model): 
+    site    = models.ForeignKey('Site',db_index=True)
+    date    = models.DateTimeField(db_index=True, auto_now=True)
+    metric  = models.CharField(max_length=36, blank=False)
+    value   = models.CharField(max_length=36, blank=False, null=True)
+
+    @property
+    def is_statistic(self):
+        return self.event == 'statistic'
+
+    def __unicode__(self):
+        return "<%s %s:%s>" %( self.site, self.metric, self.value)
 
 class Event(models.Model):
     site    = models.ForeignKey('Site')
@@ -63,6 +74,7 @@ class Event(models.Model):
 
     def __unicode__(self):
         return "%s did something to %s and the result was %s (%s)" %( self.user, self.site, self.status, self.task_id)
+
 
     def simple(self):
         return {'status' : self.status, 'message' : self.message}

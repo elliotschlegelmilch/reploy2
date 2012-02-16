@@ -34,15 +34,15 @@ a.section:link, a.section:visited { color: #666666; }
 timers = {};
 
 check_done = function(event) { 
-         $.ajax({ data: {event: event},
+         $.ajax({ data: {site: event},
                   success: function(d) {
       console.log(d);
              if (d.status != null) { clearInterval( timers[event]);  }
-             if (d.status) {     }
+             if (d.status) { $.each(d.stats, function(i,j){ $(i).html(j); }) ;    }
 return true;
       }})};
 
-l = [ {% for task in callbacks %} '{{ task.task_id }}'{% if not forloop.last %}, {%endif%}{%endfor%} ]
+l = [ {{ site.pk }} ];
 
 
 
