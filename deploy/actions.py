@@ -42,7 +42,7 @@ def update_events():
 
     for event in events:
         task = celery.result.AsyncResult( event.task_id )
-        if task.ready() and not event.event.is_statistic:
+        if task.ready() and not event.is_statistic:
             if isinstance(task.result, tuple):
                 event.status, event.message = task.result
             else:
@@ -58,7 +58,7 @@ def update_statistic():
     i = 0
     for event in Event.objects.filter(status = None):
         task = celery.result.AsyncResult( event.task_id )
-        if task.ready() and event.event.is_statistic:
+        if task.ready() and event.is_statistic:
             status, d = task.result
             for m in d:
                 i = i + 1
