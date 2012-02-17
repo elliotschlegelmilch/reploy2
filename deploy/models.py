@@ -56,10 +56,6 @@ class Statistic(models.Model):
     metric  = models.CharField(max_length=36, blank=False)
     value   = models.CharField(max_length=36, blank=False, null=True)
 
-    @property
-    def is_statistic(self):
-        return self.event == 'statistic'
-
     def __unicode__(self):
         return "<%s %s:%s>" %( self.site, self.metric, self.value)
 
@@ -75,6 +71,9 @@ class Event(models.Model):
     def __unicode__(self):
         return "%s did something to %s and the result was %s (%s)" %( self.user, self.site, self.status, self.task_id)
 
+    @property
+    def is_statistic(self):
+        return self.event == 'statistic'
 
     def simple(self):
         return {'status' : self.status, 'message' : self.message}

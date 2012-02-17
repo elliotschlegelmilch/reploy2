@@ -1,4 +1,4 @@
-from deploy.actions import migrate, drush, update_events, get_site_status
+from deploy.actions import migrate, drush, update_events, update_statistic, get_site_status
 from deploy.forms import Migrate, Drush
 from deploy.models import Platform, Site, Event, Statistic
 from django.conf import settings
@@ -16,10 +16,16 @@ def site_manage(request, sid):
     events = Event.objects.filter( site= site ).order_by('date')
     callbacks = Event.objects.filter( site= site, event='status' ).order_by('date')
     
-    get_site_status.delay(site)
-    
+    task = get_site_status.delay(site)
+    status_event = Event( task_id=task.task_id,
+                          site=site,
+                          user=request.user,
+                          event="statistic")
+    event.save()
+
     try:
         update_events()
+        update_statistic()
     except:
         pass
     
