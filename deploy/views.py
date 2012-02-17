@@ -21,7 +21,7 @@ def site_manage(request, sid):
                           site=site,
                           user=request.user,
                           event="statistic")
-    event.save()
+    status_event.save()
 
     try:
         update_events()
