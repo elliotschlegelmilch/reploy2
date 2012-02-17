@@ -245,6 +245,8 @@ def backup(site):
     fs = _backup_files(site,path)
 
     if not (db and fs):
+        logger.info('backup: _backup_db was %s' % (str(db),) )
+        logger.info('backup: _backup_fs was %s' % (str(fs),) )
         shutil.rmtree(path)
         return (False, "Backup didn't complete.")
                 
