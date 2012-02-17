@@ -269,7 +269,7 @@ def backup(site):
         #remove temporary directory
         shutil.rmtree(path)
     except:
-        logger.critical(backup: "oops; can't delete: %s" % (path,))
+        logger.critical("backup: oops; can't delete: %s" % (path,))
 
     if status == 0:
         return (True, "backup is %s" %(friendly_backup_path,))
