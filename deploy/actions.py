@@ -68,6 +68,7 @@ def update_statistic():
                                value  = d[m]
                                )
                 s.save()
+            event.delete() 
     return i
 
     
