@@ -23,11 +23,8 @@ def site_manage(request, sid):
                           event="statistic")
     status_event.save()
 
-    try:
-        update_events()
-        update_statistic()
-    except:
-        pass
+    update_events()
+    update_statistic()
     
     data = {'events': events,
             'user'  : request.user,
@@ -115,9 +112,10 @@ def platform_status(request, platform=None):
 
 def ajax(request):
     data = {'status': False }
-    site  = request.POST.get(u'site')
-
+    site = get_object_or_404( Site, pk= request.POST.get(u'site') )
+    print site
     statistics = Statistic.objects.filter(site=site)
+    print statistics
     if len(statistics) > 0:
         stats = {}
         data['status'] = True
