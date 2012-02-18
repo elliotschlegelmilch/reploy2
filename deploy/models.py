@@ -54,7 +54,7 @@ class Statistic(models.Model):
     site    = models.ForeignKey('Site',db_index=True)
     date    = models.DateTimeField(db_index=True, auto_now=True)
     metric  = models.CharField(max_length=36, blank=False)
-    value   = models.CharField(max_length=36, blank=False, null=True)
+    value   = models.CharField(max_length=128, blank=False, null=True)
 
     def __unicode__(self):
         return "<%s %s:%s>" %( self.site, self.metric, self.value)
