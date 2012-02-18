@@ -38,7 +38,7 @@ check_done = function(event) {
                   success: function(d) {
       console.log(d);
              if (d.status != null) { clearInterval( timers[event]);  }
-             if (d.status) { $.each(d.stats, function(i,j){ $(i).html(j); }) ;    }
+             if (d.status) { $.each(d.stats, function(i,j){ $('#' + i).html(j); }) ;    }
 return true;
       }})};
 
