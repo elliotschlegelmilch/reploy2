@@ -3,7 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
 from django.http import HttpResponseRedirect, HttpResponse
 
-from deploy.models import Platform, Site, Status, Event
+from deploy.models import Platform, Site, Status, Event, Statistic
 from deploy.actions import verify, create, enable, disable, wipe_site, cacheclear, backup
 
 
@@ -16,7 +16,7 @@ class SiteAdmin(admin.ModelAdmin):
     ordering = ['long_name', 'short_name']
     actions = ['site_online', 'site_offline', 'site_verify', 'site_create',
                'site_cacheclear', 'site_migrate', 'site_wipe', 'site_backup', 'site_drush']
-    exclude =['status']
+#    exclude =['status']
 
     def site_online(self, request, queryset):
         for site in queryset:
@@ -97,13 +97,13 @@ class SiteAdmin(admin.ModelAdmin):
 
 class EventAdmin(admin.ModelAdmin):
     list_display = ['site','event','user','date','status','message','task_id']
-    list_filter = ['user','status']
+    list_filter = ['user','status', 'event']
     list_display_links = ['task_id']
     
 admin.site.register(Site,SiteAdmin)
 admin.site.register(Platform)
 admin.site.register(Status)
 admin.site.register(Event,EventAdmin)
-
+admin.site.register(Statistic)
 
 
