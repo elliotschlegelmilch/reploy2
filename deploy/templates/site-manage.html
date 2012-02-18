@@ -36,7 +36,6 @@ timers = {};
 check_done = function(event) { 
          $.ajax({ data: {site: event},
                   success: function(d) {
-      console.log(d);
              if (d.status != null) { clearInterval( timers[event]);  }
              if (d.status) { $.each(d.stats, function(i,j){ $('#' + i).html(j); }) ;    }
 return true;
@@ -63,9 +62,8 @@ $.each(l, function(i,item) { timers[item] = setInterval( function() { check_done
 {% for f in site.get_flags %} <li>{{ f|capfirst }} - {{f.description}}</li> {% endfor %} </ul></dd>
 <dt> Nodes </dt><dd id="node_count"> &mdash;</dd>
 <dt> Files </dt><dd id="file_count">&mdash;</dd>
-<dt> Users </dt><dd id="user_count">&mdash;</dd>
-<dt> Cron  </dt><dd id="cron_run">&mdash;</dd>
-<dt> Disk utilization </dt><dd id="du"> <meter value="77" min="0"  max="100"> &mdash; </meter> </dd>
+<dt> Cron </dt><dd id="cron_last">&mdash;</dd>
+<dt> Disk utilization </dt><dd id="disk_usage"> <!-- <meter value="77" min="0"  max="100"> --> &mdash; </dd>
 </dl>
 
  <form action="" method="post">
