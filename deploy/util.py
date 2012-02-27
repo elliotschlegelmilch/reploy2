@@ -75,8 +75,17 @@ def _remote_mysql(site, query):
     """ run a mysql query on the site's database. """
 
     cmd = 'mysql %s -ss -e "%s"' % (site.database, query)
+    logger.info('_remote_mysql(): site=%s query="%s"' %( site, query))
+    
     (status, out,err) = _remote_ssh(site.platform, cmd)
-    return out
+    
+    if status == 0:
+        logger.info('_remote_mysql(): result=%s' %(out,))
+        return out
+
+    logger.info('_remote_mysql(): out="%s" err="%s"' %(out,err))
+
+    return None
     
 
 def _rsync_pull(platform, remote, local):
