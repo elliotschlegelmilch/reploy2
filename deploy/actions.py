@@ -9,6 +9,7 @@ import celery.result
 import copy
 import datetime
 import glob
+import locale
 import logging
 import os.path
 import shutil
@@ -594,7 +595,11 @@ def get_site_du(site):
     if status == 0:
         tmp = out.split('\t')
         kilobytes = tmp[0]
-        return {'disk_usage': int(kilobytes)}
+
+        locale.setlocale(locale.LC_ALL, '')
+        s = locale.format("%d", kilobytes/1024, grouping=True) + ' megabytes'
+        
+        return {'disk_usage': s}
     return {}
 
 def get_node_count(site):
