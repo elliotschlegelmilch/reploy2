@@ -113,7 +113,7 @@ def _rsync_push(platform, local, remote):
     output,stderr = process.communicate()
     status = process.poll()
     t = datetime.datetime.now() - begin
-    logger.info('_rsync_pull: took %d seconds. returned %d.' % (t.seconds, status))
+    logger.info('_rsync_push: took %d seconds. returned %d.' % (t.seconds, status))
     return (status,output,stderr)
 
 
