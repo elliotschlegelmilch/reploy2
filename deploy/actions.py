@@ -301,7 +301,7 @@ def _find_backup_file(site):
 
 @task
 def migrate(site, new_platform):
-    """Moves a site to a new platform. Site name, database remain the same."
+    """Moves a site to a new platform. Site name, database remain the same."""
     if site.platform == new_platform:
         logger.critical("migrate: trying to migrate ontop of itself.")
         return (False, "trying to migrate ontop of itself.")
