@@ -421,6 +421,7 @@ def rename(site, new_site, clone=False):
     if new_site.__class__ == str:
         dest_site = Site()
         dest_site.short_name = new_site
+        dest_site.user = site.user 
         dest_site.database = _generate_database_name(new_site)
         dest_site.platform = site.platform
         dest_site.save()
@@ -443,7 +444,7 @@ def rename(site, new_site, clone=False):
         return (False, "backup succeeded but now where is it? help.")
 
     #push the tarball_path into place.
-    _rsync_push(new_site.platform, tarball_path, settings.TEMPORARY_PATH)
+    _rsync_push(dest_site.platform, tarball_path, settings.TEMPORARY_PATH)
 
     # from the tarball, only extract foo.pdx.edu.baz into the sites/ directory
     # for some reason, these files have a leading ./ which i need to specify when extracting.
@@ -452,19 +453,19 @@ def rename(site, new_site, clone=False):
     tarball = os.path.basename(tarball_path)
 
     
-    (status, out, err) = _remote_ssh(new_site.platform,
+    (status, out, err) = _remote_ssh(dest_site.platform,
                                      "tar -zxvf %s -C %s ./%s" % (os.path.join(settings.TEMPORARY_PATH,tarball),
-                                                                  os.path.join(new_site.platform.path, 'sites'),
+                                                                  settings.TEMPORARY_PATH,  # was os.path.join(dest_site.platform.path, 'sites'),
                                                                   'default' if site.short_name == 'default' else site.platform.host + '.' +  site.short_name,
                                                                   ) )
 
-    (status, out, err) = _remote_ssh(new_site.platform,
+    (status, out, err) = _remote_ssh(dest_site.platform,
                                      "tar -zxvf %s -C %s ./%s" % (os.path.join(settings.TEMPORARY_PATH,tarball),
                                                                   settings.TEMPORARY_PATH,
                                                                   site.database + '.sql'))
     
     #tarball components extracted: now we can remove it.
-    _remote_ssh(new_site.platform,
+    _remote_ssh(dest_site.platform,
                  "rm %s" % (os.path.join(settings.TEMPORARY_PATH,tarball),))
     
 
@@ -478,9 +479,9 @@ def rename(site, new_site, clone=False):
                                          ))
 
     #rename sitedir to the correct thing.
-    _remote_ssh(new_site.platform, "mv %s %s" % (
-                    os.path.join(new_site.platform.path,'sites',site.files_dir),
-                    dest_site.site_dir() ))
+    _remote_ssh(dest_site.platform, "cp -Rp %s %s" % (
+        os.path.join(settings.TEMPORARY_PATH, site.files_dir),
+        dest_site.site_dir() ))
                 
                 
     
