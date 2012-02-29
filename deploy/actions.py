@@ -423,6 +423,7 @@ def rename(site, new_site, clone=False):
         dest_site.short_name = new_site
         dest_site.database = _generate_database_name(new_site)
         dest_site.platform = site.platform
+        dest_site.save()
     
     dest_site.set_flag('unqueried')
     dest_site.set_flag('not installed')
