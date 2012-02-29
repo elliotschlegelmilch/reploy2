@@ -12,6 +12,7 @@ import glob
 import locale
 import logging
 import os.path
+import re
 import shutil
 import subprocess
 import tempfile
@@ -398,6 +399,115 @@ def migrate(site, new_platform):
 
     return (True, "Still more work to do.")
 
+def _generate_database_name(s):
+    """Generates a stripped version of the string, suitable for use as a mysql database. """
+
+    s = s.strip().lower()
+    
+    return re.sub(r'-','_', s)
+    
+
+@task
+def rename(site, new_site, clone=False):
+    """ Renames a site. also renames the database. new_site may be a
+    site or a string with the new short_name.  if clone is true, the
+    existing site will not be deleted."""
+
+    #TODO: genericify / wrap migrate so that it will handle clone, move & rename.
+
+    # construct a dest_site
+    dest_site = new_site
+    
+    if new_site.__class__ == str:
+        dest_site = Site()
+        dest_site.short_name = new_site
+        dest_site.database = _generate_database_name(new_site)
+        dest_site.platform = site.platform
+    
+    dest_site.set_flag('unqueried')
+    dest_site.set_flag('not installed')
+    dest_site.long_name = site.long_name + ' copy'
+    dest_site.database = _generate_database_name(dest_site.short_name)
+    dest_site.save()
+
+    backup_result, msg = backup(site)
+
+    if not backup_result:
+        logger.critical("rename: backup didn't succeed, bail")
+        return (False, "rename: backup didn't succeed, bail. reason: " + msg)
+
+    tarball_path = _find_backup_file(site)
+    if tarball_path == None:
+        logger.critical('rename: backup succeeded but now where is it? help.')
+        return (False, "backup succeeded but now where is it? help.")
+
+    #push the tarball_path into place.
+    _rsync_push(new_site.platform, tarball_path, settings.TEMPORARY_PATH)
+
+    # from the tarball, only extract foo.pdx.edu.baz into the sites/ directory
+    # for some reason, these files have a leading ./ which i need to specify when extracting.
+
+    #also, tarball contains the permenant home of this backup- we need to basename() it
+    tarball = os.path.basename(tarball_path)
+
+    
+    (status, out, err) = _remote_ssh(new_site.platform,
+                                     "tar -zxvf %s -C %s ./%s" % (os.path.join(settings.TEMPORARY_PATH,tarball),
+                                                                  os.path.join(new_site.platform.path, 'sites'),
+                                                                  'default' if site.short_name == 'default' else site.platform.host + '.' +  site.short_name,
+                                                                  ) )
+
+    (status, out, err) = _remote_ssh(new_site.platform,
+                                     "tar -zxvf %s -C %s ./%s" % (os.path.join(settings.TEMPORARY_PATH,tarball),
+                                                                  settings.TEMPORARY_PATH,
+                                                                  site.database + '.sql'))
+    
+    #tarball components extracted: now we can remove it.
+    _remote_ssh(new_site.platform,
+                 "rm %s" % (os.path.join(settings.TEMPORARY_PATH,tarball),))
+    
+
+    #create and fill database
+    #todo: stage database + replacements first.
+    _create_site_database(dest_site)
+    (status, out, err) = _remote_ssh(dest_site.platform,
+                                     'mysql %s < %s' % (
+                                         dest_site.database,
+                                         os.path.join(settings.TEMPORARY_PATH, site.database + '.sql')
+                                         ))
+
+    #rename sitedir to the correct thing.
+    _remote_ssh(new_site.platform, "mv %s %s" % (
+                    os.path.join(new_site.platform.path,'sites',site.files_dir),
+                    dest_site.site_dir() ))
+                
+                
+    
+    #put in a settings.php
+    new_settings_php = tempfile.mkstemp()[1]
+    
+    dest_site.settings_php(new_settings_php)
+    (status, out, err) = _rsync_push(dest_site.platform,
+                                     new_settings_php,
+                                     os.path.join(dest_site.site_dir(), 'settings.php'))
+    #cleanup after our tempfile
+    os.remove(new_settings_php)
+
+    
+
+    _create_site_dirs(dest_site)
+
+    _set_site_permissions(dest_site)
+
+    #search / replace database.
+    status = _db_replace(site, dest_site)
+
+    return (True, "Still more work to do.")
+
+
+
+
+    
 
 def is_clean(site):
     """ return true of if there is no trace of the site. this includes symlink, database, sites directory"""
