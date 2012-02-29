@@ -705,7 +705,7 @@ def get_site_du(site):
                                     "du -ks %s" % (site.site_dir(),) )
     if status == 0:
         tmp = out.split('\t')
-        kilobytes = tmp[0]
+        kilobytes = int(tmp[0])
 
         locale.setlocale(locale.LC_ALL, '')
         s = locale.format("%d", kilobytes/1024, grouping=True) + ' megabytes'
