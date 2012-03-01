@@ -567,9 +567,10 @@ def _create_site_database(site):
 def _create_settings_php(site):
     settings = tempfile.mkstemp()[1]
     site.settings_php(settings)
-    _remote_ssh(site.platform, 'mv %s %s' %( os.path.join( site.site_dir(), 'settings.php'),
-                                             os.path.join( site.site_dir(), 'settings.php.old') )
-                )
+
+    #post install this fails since drush chown'd settings.php.
+    _remote_ssh(site.platform, 'chmod 664 %s' %( os.path.join( site.site_dir(), 'settings.php'), ) )
+                
     (status, out, err) = _rsync_push(site.platform,
                                      settings,
                                      os.path.join( site.site_dir(), 'settings.php')
