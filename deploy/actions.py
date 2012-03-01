@@ -61,15 +61,18 @@ def update_statistic():
     for event in Event.objects.filter(status = None):
         task = celery.result.AsyncResult( event.task_id )
         if task.ready() and event.is_statistic:
-            d = task.result
-            for m in d:
-                i = i + 1
-                s = Statistic( site   = event.site,
-                               date   = event.date,
-                               metric = m,
-                               value  = d[m]
-                               )
-                s.save()
+            try:
+                d = task.result
+                for m in d:
+                    i = i + 1
+                    s = Statistic( site   = event.site,
+                                   date   = event.date,
+                                   metric = m,
+                                   value  = d[m]
+                                   )
+                    s.save()
+            except:
+                pass
             event.delete() 
     return i
 
