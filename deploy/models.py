@@ -124,7 +124,7 @@ class Site(models.Model):
     link.allow_tags = True
 
     def manage(self):
-        return '<a href="%s">&rarr;</a>' % (urlresolvers.reverse('deploy.site_manage',
+        return '<a href="%s">&rarr;</a>' % (urlresolvers.reverse('deploy.views.site_manage',
                                                                  args=(self.pk,) ), )
     manage.allow_tags = True
 
