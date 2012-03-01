@@ -122,6 +122,11 @@ class Site(models.Model):
         return '<a href="%s">%s</a>' %(self.__unicode__(),self.__unicode__())
     link.allow_tags = True
 
+    def manage(self):
+        return '<a href="%s">&rarr;</a>' % (urlresolvers.reverse('deploy.site_manage',
+                                                                 args=(self.pk,) ), )
+    manage.allow_tags = True
+
     # some helpers for the multiflag.
     def show_status(self):
         return ','.join([str(i) for i in self.status.all()])
