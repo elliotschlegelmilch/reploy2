@@ -76,6 +76,54 @@ def update_statistic():
             event.delete() 
     return i
 
+
+@task
+def media2_upgrade(site):
+    log_file = "/tmp/media2-%s.log " %(site.short_name,)
+    l = file(log_file,"wa")
+    
+    cmds = [
+        'cc all',
+        'm2safd',
+        'pm-disable media_browser_plus -y',
+        'pm-disable media_browser_plus -y',
+        'en media_vimeo -y',
+        'updatedb -y',
+
+        'field-delete field_tags --bundle=all',
+        'field-delete field_slide --bundle=all',
+        'field-delete field_branding_images --bundle=all',
+
+        'features-revert front_slide_content_type -y',
+        'en pdx_media_upgrade_helper -y',
+
+        'features-revert pdx_media_upgradee_helper -y',
+        'pm-disable pdx_media_upgrade_helper -y',
+
+        'features-revert pdx_front_page_slide_show_view -y',
+        'en pdx_media_kit -y',
+        'features-revert pdx_media_kit -y',
+        'en pdx_wysiwyg_profiles -y',
+        'features-revert pdx_wysiwyg_profiles -y',
+        'features-revert pdx_permissions -y',
+
+        'm2rfd',
+        'm2ush shortcut-set-2',
+        'm2ush shortcut-set-3',
+        'image-flush --all',
+        'cc all']
+        
+    for cmd in cmds:
+        l.write("--- started command %s at %s ---" %(cmd, 
+            datetime.datetime.now().strftime('%Y%m%d.%H%M%S')))
+        
+        (status, out, err) = _remote_drush(site, cmd)
+        l.write("---out: %s\n---err: %s\n" %(out,err,))               
+        l.write("--- end:%d    command %s at %s ---" %(cmd,  status, 
+            datetime.datetime.now().strftime('%Y%m%d.%H%M%S')))
+
+    l.close()
+    return True
     
 
 @task
