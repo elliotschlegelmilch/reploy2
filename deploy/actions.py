@@ -86,7 +86,6 @@ def media2_upgrade(site):
         'cc all',
         'm2safd',
         'pm-disable media_browser_plus -y',
-        'pm-disable media_browser_plus -y',
         'en media_vimeo -y',
         'updatedb -y',
 
@@ -95,16 +94,15 @@ def media2_upgrade(site):
         'field-delete field_branding_images --bundle=all',
 
         'features-revert front_slide_content_type -y',
-        'en pdx_media_upgrade_helper -y',
-
-        'features-revert pdx_media_upgradee_helper -y',
-        'pm-disable pdx_media_upgrade_helper -y',
-
         'features-revert pdx_front_page_slide_show_view -y',
+        'en pdx_media_upgrade_helper -y',
+        'features-revert pdx_media_upgrade_helper -y',
+
         'en pdx_media_kit -y',
         'features-revert pdx_media_kit -y',
         'en pdx_wysiwyg_profiles -y',
         'features-revert pdx_wysiwyg_profiles -y',
+        'features-revert pdx_admin_menu -y',
         'features-revert pdx_permissions -y',
 
         'm2rfd',
