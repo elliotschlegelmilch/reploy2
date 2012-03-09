@@ -79,7 +79,7 @@ def update_statistic():
 
 @task
 def media2_upgrade(site):
-    log_file = "/tmp/media2-%s.log " %(site.short_name,)
+    log_file = "/tmp/media2-%s.log" %(site.short_name,)
     l = file(log_file,"wa")
     
     cmds = [
