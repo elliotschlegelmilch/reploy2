@@ -615,7 +615,7 @@ def _create_settings_php(site):
     site.settings_php(settings)
 
     #post install this fails since drush chown'd settings.php.
-    _remote_ssh(site.platform, 'rm -f %s' %( os.path.join( site.site_dir(), 'settings.php'), ) )
+    _remote_ssh(site.platform, 'chmod 755 %s' %( site.site_dir(), ) )
                 
     (status, out, err) = _rsync_push(site.platform,
                                      settings,
