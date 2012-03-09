@@ -9,6 +9,7 @@ admin.autodiscover()
 urlpatterns = patterns( '',
                         url(r'^$', 'deploy.views.home', name='home'),
                         url(r'^site-migrate$', 'deploy.views.site_migrate'),
+                        url(r'^site-rename$', 'deploy.views.site_clone'),
                         url(r'^site-drush$', 'deploy.views.site_drush'),
                        
                         url(r'^platform-status/(?P<platform>.+)$', 'deploy.views.platform_status'),

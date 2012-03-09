@@ -14,8 +14,13 @@ class SiteAdmin(admin.ModelAdmin):
     list_display_links = ['short_name']
     search_fields = ['long_name', 'short_name']
     ordering = ['long_name', 'short_name']
-    actions = ['site_online', 'site_offline', 'site_verify', 'site_create',
-               'site_cacheclear', 'site_migrate', 'site_wipe', 'site_backup', 'site_drush']
+    actions = [
+        # no interaction
+        'site_online', 'site_offline', 'site_verify', 'site_create',
+        'site_cacheclear', 'site_wipe', 'site_backup',
+        # views
+        'site_migrate', 'site_drush', 'site_rename'
+        ]
 #    exclude =['status']
 
     def site_online(self, request, queryset):
@@ -78,6 +83,11 @@ class SiteAdmin(admin.ModelAdmin):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         ct = ContentType.objects.get_for_model(queryset.model)
         return HttpResponseRedirect("/site-migrate?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
+
+    def site_rename(self, request, queryset):
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        ct = ContentType.objects.get_for_model(queryset.model)
+        return HttpResponseRedirect("/site-rename?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
 
     def site_drush(self, request, queryset):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)

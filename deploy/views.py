@@ -1,5 +1,5 @@
-from deploy.actions import migrate, drush, update_events, update_statistic, get_site_status
-from deploy.forms import Migrate, Drush
+from deploy.actions import migrate, rename, drush, update_events, update_statistic, get_site_status
+from deploy.forms import Migrate, Clone, Drush
 from deploy.models import Platform, Site, Event, Statistic
 from django.conf import settings
 from django.contrib import messages
@@ -92,6 +92,40 @@ def site_drush(request):
         }
 
     return render_to_response('drush.html', data)
+
+
+def site_clone(request):
+
+    l = request.GET['ids'].split(',')
+    site_id = [int(i) for i in l][0]
+    site = get_object_or_404( Site, pk=site_id)
+
+    default_name = "%s_copy" % (site.short_name,)
+
+    form = Clone(request.POST if request.POST else None,
+                 initial={'new_name': default_name})
+
+    if form.is_valid():
+        #what sites:
+        
+        do_clone = form.cleaned_data['clone']
+        
+        ctask = rename.delay( site, form.cleaned_data['new_name'], do_clone)
+        event = Event( task_id=ctask.task_id, site=site, user=request.user, event='migrate')
+        event.save()
+        messages.add_message(request, messages.INFO, "The clone of the site %s has been queued: %s" % ( site, ctask.task_id) )
+
+        return redirect(
+            urlresolvers.reverse('admin:deploy_site_changelist')
+            )
+         
+    data = {
+        'user': request.user,
+        'form': form,
+        }
+
+    return render_to_response('clone.html', data)
+
 
 
 def platform_status(request, platform=None):
