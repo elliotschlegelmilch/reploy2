@@ -116,8 +116,8 @@ def media2_upgrade(site):
             datetime.datetime.now().strftime('%Y%m%d.%H%M%S')))
         
         (status, out, err) = _remote_drush(site, cmd)
-        l.write("---out: %s\n---err: %s\n" %(out,err,))               
-        l.write("--- end:%d    command %s at %s ---" %(cmd,  status, 
+        l.write("---out:\n%s\n---err:\n%s\n" %(out,err,))               
+        l.write("---end:%d    command %s at %s ---\n" %( status, cmd,  
             datetime.datetime.now().strftime('%Y%m%d.%H%M%S')))
 
     l.close()
