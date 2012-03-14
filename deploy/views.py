@@ -37,6 +37,8 @@ def site_manage(request, sid):
         elif op == 'verify':
             verify.delay(site)
         elif op == 'migrate':
+            # Migrate(request.POST).is_valid
+            # migrate.delay(site, form.cleaned_data['new_platform']
             migrate.delay(site, request.POST.get('new_platform'))
         elif op == 'clone':
             pass
