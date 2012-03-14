@@ -9,8 +9,7 @@ class Migrate(forms.Form):
                                                   )
 
 class Clone(forms.Form):
-    new_name = forms.CharField(required=True, label="Short Name")
-    clone    = forms.BooleanField(required=False, label="Clone")
+    new_name = forms.CharField(required=True, label="New Short Name")
 
 
 class Drush(forms.Form):
