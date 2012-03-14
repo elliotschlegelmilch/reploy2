@@ -349,6 +349,12 @@ def _find_backup_file(site):
     return None
 
 @task
+def varnishclear(site):
+
+    return (False, "not implemented yet.")
+
+
+@task
 def migrate(site, new_platform):
     """Moves a site to a new platform. Site name, database remain the same."""
     if site.platform == new_platform:
