@@ -14,6 +14,10 @@ class Clone(forms.Form):
 
 
 class Drush(forms.Form):
-    drush_command = forms.CharField()
+    drush_command = forms.CharField(
+        widget = forms.TextInput(attrs={'size':'40'}),
+        label = 'command'
+        )
+
 
     
