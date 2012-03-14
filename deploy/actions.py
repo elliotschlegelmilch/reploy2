@@ -186,6 +186,9 @@ def verify(site):
             site.database, db, str(site)))
         site.database = db
         site.save()
+
+    # if we're this far, profile the site. asynchronously.
+    get_site_status.delay(site)
     
     return (True, "This command completed sucessfully.")
     
