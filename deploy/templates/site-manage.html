@@ -16,6 +16,7 @@ a.section:link, a.section:visited { color: #666666; }
 .row-True  {background-color: #DFF2BF; }
 .row-False {background-color: #FFBABA; }
 
+li {border: 1px solid #ccc ; margin: 10px;}
 </style>
 {% endblock %}
 
@@ -66,34 +67,42 @@ $.each(l, function(i,item) { timers[item] = setInterval( function() { check_done
 <dt> Disk utilization </dt><dd id="disk_usage"> <!-- <meter value="77" min="0"  max="100"> --> &mdash; </dd>
 </dl>
 
- <form action="" method="post">
-      <div>
-	<ul>
-	  <li>
+<form action="" method="post">
 
-          <div class="form-row">
-            <label for="delete"> Removal </label>
-            <input type='text' maxlength='6' name="delete_confirm">
-            <input type='submit' name="_delete" value="delete">
+    <div>
+      <ul>
+        <li>
+          <h3> Clone/Rename </h3>
+            {{ forms.clone.as_p }}
+      	  <input type="submit" name="submit" value="clone">
+	  <input type="submit" name="submit" value="rename">
 
-            <p class="help">
-              To confirm site deletion, type <i>delete</i> in the box
-              and press the delete button. There is no further
-              confirmation.
-            </p>
-	  </div>
-	</li>
-	<li>
-	<div class="form-row">
-	  <label for="new_name"> New Name</label>
-	  <input type="text" name="new_name">
-	  <input type="submit" name="_clone" value="clone">
-	  <input type="submit" name="_rename" value="rename">
-	    </div>
+        </li>
+        
+        <li>
+          <h3> Migrate </h3>
+            {{ forms.migrate.as_p }}
+	  <input type="submit" name="submit" value="migrate">
+
         </li>
 
-<li>
-</li>
+        <li>
+          <h3> Quick Actions </h3>
+        <p>
+            <input type="submit" name="submit" value="enable">
+	    <input type="submit" name="submit" value="disable">
+          </p>
+        <p>
+            <input type="submit" name="submit" value="cache clear">
+            <input type="submit" name="submit" value="varnish clear">
+        </p>
+        </li>
+
+        <li>
+          <h3> Drush </h3>
+            {{ forms.drush.as_p }}
+            <input type="submit" name="submit" value="drush">
+          </li>
 
 </ul>
 
@@ -110,10 +119,6 @@ $.each(l, function(i,item) { timers[item] = setInterval( function() { check_done
 
     {% endfor %}
 </table>
-
-<div class="submit-row">
-<input type="submit" value="Save" class="default" name="_save">
-</div>
 
 
 </form>
