@@ -13,7 +13,6 @@ import datetime
 import json
 
 def site_manage(request, sid):
-    print request.POST
     site = get_object_or_404( Site, pk=sid)
     events = Event.objects.filter( site= site ).order_by('date')
     callbacks = Event.objects.filter( site= site, event='status' ).order_by('date')
@@ -179,9 +178,7 @@ def platform_status(request, platform=None):
 def ajax(request):
     data = {'status': False }
     site = get_object_or_404( Site, pk= request.POST.get(u'site') )
-    print site
     statistics = Statistic.objects.filter(site=site)
-    print statistics
     if len(statistics) > 0:
         stats = {}
         data['status'] = True
