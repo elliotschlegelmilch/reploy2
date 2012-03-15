@@ -17,13 +17,16 @@ def site_manage(request, sid):
     events = Event.objects.filter( site= site ).order_by('date')
     callbacks = Event.objects.filter( site= site, event='status' ).order_by('date')
 
+
+
+    # this is gross and I would really like to be rid of it.
     op = request.POST.get('submit', None)
 
     form_instance = request.POST if request.method == 'POST' else None
     
-    forms = {'clone'  : Clone(form_instance),
-             'migrate': Migrate(form_instance),
-             'drush'  : Drush(form_instance),
+    forms = {'clone'  : Clone(form_instance   if op == 'clone'   else None ),
+             'migrate': Migrate(form_instance if op == 'migrate' else None ),
+             'drush'  : Drush(form_instance   if op == 'drush'   else None ),
              }
 
     ctask = None
