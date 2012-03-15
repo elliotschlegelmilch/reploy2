@@ -16,11 +16,6 @@ def site_manage(request, sid):
     site = get_object_or_404( Site, pk=sid)
     events = Event.objects.filter( site= site ).order_by('date')
     callbacks = Event.objects.filter( site= site, event='status' ).order_by('date')
-   
-    task = get_site_status.delay(site)
-
-    #status_event = Event( task_id=task.task_id, site=site, user=request.user, event="statistic")
-    #status_event.save()
 
     op = request.POST.get('submit', None)
 
