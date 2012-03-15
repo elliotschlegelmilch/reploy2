@@ -26,23 +26,27 @@ def site_manage(request, sid):
 
     if not op == None:
         if op == 'enable':
-            enable.delay(site)
+            ctask = enable.delay(site)
         elif op == 'disable':
-            disable.delay(site)
+            ctask = disable.delay(site)
         elif op == 'cache':
-            cacheclear.delay(site)
+            ctask = cacheclear.delay(site)
         elif op == 'varnish':
-            varnishclear.delay(site)
+            ctask = varnishclear.delay(site)
         elif op == 'verify':
-            verify.delay(site)
+            ctask = verify.delay(site)
         elif op == 'migrate':
             # Migrate(request.POST).is_valid
             # migrate.delay(site, form.cleaned_data['new_platform']
-            migrate.delay(site, request.POST.get('new_platform'))
+            ctask = migrate.delay(site, request.POST.get('new_platform'))
         elif op == 'clone':
             pass
         elif op == 'rename':
             pass
+
+        #record the task as an event, that way it will display in the task log.
+        event = Event( task_id=ctask.task_id, site=site, user=request.user, event=op)
+        event.save()
     
 
 
