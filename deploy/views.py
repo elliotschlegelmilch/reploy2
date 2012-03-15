@@ -22,8 +22,9 @@ def site_manage(request, sid):
     #status_event = Event( task_id=task.task_id, site=site, user=request.user, event="statistic")
     #status_event.save()
 
-    op =  request.POST.get('submit', None)
-
+    op = request.POST.get('submit', None)
+    ctask = None
+    
     if not op == None:
         if op == 'enable':
             ctask = enable.delay(site)
@@ -44,9 +45,10 @@ def site_manage(request, sid):
         elif op == 'rename':
             pass
 
-        #record the task as an event, that way it will display in the task log.
-        event = Event( task_id=ctask.task_id, site=site, user=request.user, event=op)
-        event.save()
+        if not ctask == None:
+            #record the task as an event, that way it will display in the task log.
+            event = Event( task_id=ctask.task_id, site=site, user=request.user, event=op)
+            event.save()
     
 
 
