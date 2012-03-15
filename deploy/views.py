@@ -23,6 +23,14 @@ def site_manage(request, sid):
     #status_event.save()
 
     op = request.POST.get('submit', None)
+
+    form_instance = request.POST if request.method == 'POST' else None
+    
+    forms = {'clone'  : Clone(form_instance),
+             'migrate': Migrate(form_instance),
+             'drush'  : Drush(form_instance),
+             }
+
     ctask = None
     
     if not op == None:
@@ -53,10 +61,6 @@ def site_manage(request, sid):
     
 
 
-    forms = {'clone': Clone(),
-             'migrate': Migrate(),
-             'drush': Drush(),
-             }
 
 
     update_events()
