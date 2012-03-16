@@ -1,4 +1,5 @@
-from deploy.actions import migrate, rename, drush, update_events, update_statistic, get_site_status, enable, disable, cacheclear, verify, varnishclear
+from deploy.actions import migrate, rename, drush, update_events, update_statistic, \
+     get_site_status, enable, disable, cacheclear, verify, varnishclear
 
 from deploy.forms import Migrate, Clone, Drush
 from deploy.models import Platform, Site, Event, Statistic
