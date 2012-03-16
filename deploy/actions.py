@@ -244,12 +244,33 @@ def _backup_db(site, path):
     return False
 
 @task
-def _varnish_flush(site):
+def _varnish_flush(site, pattern=None):
     """ flush the cache for a given site, or all sites for 'default'."""
 
-    
+    # this function is kinda special since it connects to multiple web frontends
 
-    pass
+    frontends = site.platform.canonical_name.split('|')
+    purge = "purge req.http.host ~ %s && req.url ~ '^/%s/$'" % (site.platform.host,
+                                                                site.short_name)
+    #this is platform specific; could potentially use localhost depending on how varnish is set up
+    #todo: move pattern/purge text into settings.py
+    #todo: implement pattern parameter
+    
+    remote_cmd = "/usr/bin/varnishadm -S /etc/varnish/secret -T %s:6082 %s" %(purge,)
+    
+    # copy of _remote_ssh here
+    # TODO: refactor _remote_ssh
+    for frontend in frontends:
+        remote_cmd = ['ssh', frontend, cmd]
+        logger.info("_varnish_flush (ssh): %s" % (' '.join(remote_cmd),) )
+        process = subprocess.Popen(remote_cmd,
+                                    stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT)
+        output,stderr = process.communicate()
+        status = process.poll()
+
+
+    return (True, "flush sent.")
 
 def _backup_files(site, path):
     (s,o,e) = _rsync_pull(site.platform, site.site_dir(), path)
