@@ -49,7 +49,7 @@ def site_manage(request, sid):
                     ctask = migrate.delay(site, new_platform)
         elif op == 'clone' or op == 'rename':
             if forms['clone'].is_valid():
-                new_short_name = forms['clone'].cleaned_data['new_name']
+                new_name = forms['clone'].cleaned_data['new_name']
                 ctask = rename.delay(site, new_name, op == 'clone')
 
         if not ctask == None:
