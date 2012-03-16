@@ -56,6 +56,7 @@ $.each(l, function(i,item) { timers[item] = setInterval( function() { check_done
 
 <h1> Details for site: {{ site.link|safe }} </h1>   
 <h2> {{ site.long_name }} </h2>
+
 <dl>
 <dt> Site Contact  </dt> <dd><a href="mailto:{{ site.contact_email }}"> {{site.contact_email }}</a></dd>
 <dt> Department Contact  </dt> <dd><a href="mailto:{{ site.user.email }}"> {{site.user }}</a></dd>
@@ -69,52 +70,59 @@ $.each(l, function(i,item) { timers[item] = setInterval( function() { check_done
 
 <form action="" method="post">
 
-    <div>
+    <div class="tabs">
       <ul>
-        <li>
-          <h3> Clone/Rename </h3>
-            {{ forms.clone.as_p }}
-      	  <input type="submit" name="submit" value="clone">
-	  <input type="submit" name="submit" value="rename">
-
-        </li>
-        
-        <li>
-          <h3> Migrate </h3>
-            {{ forms.migrate.as_p }}
-	  <input type="submit" name="submit" value="migrate">
-
-        </li>
 
         <li>
-          <h3> Quick Actions </h3>
-        <p>
+        <h3> Quick Actions </h3>
+        <div>
+          <p>
             <input type="submit" name="submit" value="verify">
           </p>
-        <p>
+          <p>
             <input type="submit" name="submit" value="enable">
 	    <input type="submit" name="submit" value="disable">
           </p>
-        <p>
+          <p>
             <input type="submit" name="submit" value="cache clear">
             <input type="submit" name="submit" value="varnish clear">
-        </p>
-        </li>
-
+          </p>
+        </div>
+      </li>
+        
         <li>
-          <h3> Drush </h3>
-            {{ forms.drush.as_p }}
-            <input type="submit" name="submit" value="drush">
-          </li>
-
-        <li>
-          <h3> Delete </h3>
-           <p> todo </p>
+        <h3> Clone/Rename </h3>
+        <div>
+          {{ forms.clone.as_p }}
+      	  <input type="submit" name="submit" value="clone">
+	  <input type="submit" name="submit" value="rename">
+        </div>
       </li>
 
-</ul>
+        <li>
+        <h3> Migrate </h3><div>
+          {{ forms.migrate.as_p }}
+	  <input type="submit" name="submit" value="migrate">
+        </div> 
+      </li>
+        
+        <li>
+        <h3> Drush </h3>
+        <div>
+          {{ forms.drush.as_p }}
+          <input type="submit" name="submit" value="drush">
+        </div>
+      </li>
+        
+        <li>
+        <h3> Delete </h3><div>
+          <p> todo </p>
+        </div> 
+      </li>
 
-</div>
+      </ul>
+    </div>
+
 <table>
       {% for event in events %}
         <tr class="row-{{ event.status }}">
@@ -122,7 +130,7 @@ $.each(l, function(i,item) { timers[item] = setInterval( function() { check_done
           <td>{% if event.status %} {{ event.status }} {% else %} &mdash; {% endif %} </td>
           <td>{{ event.event }}</td>
           <td class="tt">{% if event.message %} {{ event.message|linebreaks }} {% else %} &mdash; {% endif %}</td>
-          <td>{{ event.task_id }} </td>
+          <td><span title="{{ event.task_id }}">task</span> </td>
         </tr>
 
     {% endfor %}

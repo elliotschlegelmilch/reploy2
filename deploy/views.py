@@ -57,6 +57,13 @@ def site_manage(request, sid):
             event = Event( task_id=ctask.task_id, site=site, user=request.user, event=op)
             event.save()
     
+            messages.add_message(request, messages.INFO,
+                                 "The %s of the site %s has been queued as '%s'." % ( op, site, ctask.task_id) )
+
+            return redirect(
+                urlresolvers.reverse('deploy.views.site_manage', args=(sid,))
+            )
+         
 
 
 
