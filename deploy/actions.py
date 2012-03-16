@@ -360,18 +360,19 @@ def varnishclear(site, pattern=None):
 
     # this function is kinda special since it connects to multiple web frontends
 
-    frontends = site.platform.canonical_name.split('|')
+    frontends = site.platform.canonical_host.split('|')
     purge = "purge req.http.host ~ %s && req.url ~ '^/%s/$'" % (site.platform.host,
                                                                 site.short_name)
     #this is platform specific; could potentially use localhost depending on how varnish is set up
     #todo: move pattern/purge text into settings.py
     #todo: implement pattern parameter
     
-    remote_cmd = "/usr/bin/varnishadm -S /etc/varnish/secret -T %s:6082 %s" %(purge,)
+
     
     # copy of _remote_ssh here
     # TODO: refactor _remote_ssh
     for frontend in frontends:
+        cmd = "/usr/bin/varnishadm -S /etc/varnish/secret -T %s:6082 %s" %(frontend, purge,)
         remote_cmd = ['ssh', frontend, cmd]
         logger.info("_varnish_flush (ssh): %s" % (' '.join(remote_cmd),) )
         process = subprocess.Popen(remote_cmd,
