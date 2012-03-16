@@ -81,9 +81,12 @@ def update_statistic():
 def media2_upgrade(site):
     log_file = "/tmp/media2-%s.log" %(site.short_name,)
     l = file(log_file,"wa")
-    
+    l.write( "UPGRADE FOR SITE: ")
+    l.write( str(site))
+
     cmds = [
         'cc all',
+        'vset --yes media2_upgrade_begin 1',
         'm2safd',
         'pm-disable media_browser_plus -y',
         'en media_vimeo -y',
@@ -104,10 +107,12 @@ def media2_upgrade(site):
         'features-revert pdx_wysiwyg_profiles -y',
         'features-revert pdx_admin_menu -y',
         'features-revert pdx_permissions -y',
+        'pm-disable mediafield -y', 
 
         'm2rfd',
         'm2ush shortcut-set-2',
         'm2ush shortcut-set-3',
+        'vset --yes media2_upgrade_complete 1',
         'image-flush --all',
         'cc all']
         
@@ -119,6 +124,11 @@ def media2_upgrade(site):
         l.write("---out:\n%s\n---err:\n%s\n" %(out,err,))               
         l.write("---end:%d    command %s at %s ---\n" %( status, cmd,  
             datetime.datetime.now().strftime('%Y%m%d.%H%M%S')))
+        if status > 0:
+            l.write("\n\n COMMAND FAILED: %s" %( cmd, ))
+            _remote_drush(site, "vset --yes media2_broken 1")
+            l.close()
+            return False
 
     l.close()
     return True
