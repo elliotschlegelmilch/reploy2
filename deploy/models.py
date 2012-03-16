@@ -29,6 +29,11 @@ class Platform(models.Model):
     def __unicode__(self):
         return self.name
 
+    # in the future, this could pick one of the hosts at random, to reduce load.
+    @property
+    def ssh_host(self):
+        return self.canonical_host.split('|')[0]
+
 
 class Status(models.Model):
     status = models.CharField(max_length=48, primary_key=True)
