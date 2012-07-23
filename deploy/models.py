@@ -137,6 +137,13 @@ class Site(models.Model):
     def show_status(self):
         return ','.join([str(i) for i in self.status.all()])
 
+    def last_event(self):
+        events = self.event_set.all().order_by('date')
+        if len(events) > 0:
+            return events[0].date
+        
+        return None
+
     def set_flag(self,flag):
         status_obj = None
         try:
