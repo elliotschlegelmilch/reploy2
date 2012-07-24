@@ -437,7 +437,7 @@ def migrate(site, new_platform):
 
     
     (status, out, err) = _remote_ssh(new_platform,
-                                     "tar -zxvf %s -C %s ./%s" % (os.path.join(settings.TEMPORARY_PATH,tarball),
+                                     "tar -zxvf %s -C %s --exclude settings.php ./%s" % (os.path.join(settings.TEMPORARY_PATH,tarball),
                                                                   os.path.join(new_platform.path, 'sites'),
                                                                   'default' if site.short_name == 'default' else site.platform.host + '.' +  site.short_name,
                                                                   ) )
