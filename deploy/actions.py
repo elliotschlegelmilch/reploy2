@@ -76,64 +76,6 @@ def update_statistic():
             event.delete() 
     return i
 
-
-@task
-def media2_upgrade(site):
-    log_file = "/tmp/media2-%s.log" %(site.short_name,)
-    l = file(log_file,"wa")
-    l.write( "UPGRADE FOR SITE: ")
-    l.write( str(site))
-
-    cmds = [
-        'cc all',
-        'vset --yes media2_upgrade_begin 1',
-        'm2safd',
-        'pm-disable media_browser_plus -y',
-        'en media_vimeo -y',
-        'updatedb -y',
-
-        'field-delete field_tags --bundle=all',
-        'field-delete field_slide --bundle=all',
-        'field-delete field_branding_images --bundle=all',
-
-        'features-revert front_slide_content_type -y',
-        'features-revert pdx_front_page_slide_show_view -y',
-        'en pdx_media_upgrade_helper -y',
-        'features-revert pdx_media_upgrade_helper -y',
-
-        'en pdx_media_kit -y',
-        'features-revert pdx_media_kit -y',
-        'en pdx_wysiwyg_profiles -y',
-        'features-revert pdx_wysiwyg_profiles -y',
-        'features-revert pdx_admin_menu -y',
-        'features-revert pdx_permissions -y',
-        'pm-disable mediafield -y', 
-
-        'm2rfd',
-        'm2ush shortcut-set-2',
-        'm2ush shortcut-set-3',
-        'vset --yes media2_upgrade_complete 1',
-        'image-flush --all',
-        'cc all']
-        
-    for cmd in cmds:
-        l.write("--- started command %s at %s ---" %(cmd, 
-            datetime.datetime.now().strftime('%Y%m%d.%H%M%S')))
-        
-        (status, out, err) = _remote_drush(site, cmd)
-        l.write("---out:\n%s\n---err:\n%s\n" %(out,err,))               
-        l.write("---end:%d    command %s at %s ---\n" %( status, cmd,  
-            datetime.datetime.now().strftime('%Y%m%d.%H%M%S')))
-        if status > 0:
-            l.write("\n\n COMMAND FAILED: %s" %( cmd, ))
-            _remote_drush(site, "vset --yes media2_broken 1")
-            l.close()
-            return False
-
-    l.close()
-    return True
-    
-
 @task
 def drush(site, cmd):
     (status, out, err) = _remote_drush(site, cmd)
