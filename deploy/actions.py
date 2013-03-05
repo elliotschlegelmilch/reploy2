@@ -182,7 +182,7 @@ def _backup_db(site, path):
 
     logger.info('_backup_db: tempfile=%s site=%s' % (remote_tempfile, site))
     (status, out, err) = _remote_ssh(site.platform,
-                                     'mysqldump --single-transaction %s > %s' % ( site.database, remote_tempfile))
+                                     'mysqldump -c --quick --single-transaction %s > %s' % ( site.database, remote_tempfile))
     if status > 0:
         logger.error('_backup_db: could not open mysqldump to tempfile on host %s' % (site.platform.host,))
         logger.error(out)
@@ -398,7 +398,7 @@ def migrate(site, new_platform):
     #todo: stage database + replacements first.
     _create_site_database(dest_site)
     (status, out, err) = _remote_ssh(dest_site.platform,
-                                     'mysql %s < %s' % (
+                                     'mysql -v %s < %s' % (
                                          dest_site.database,
                                          os.path.join(settings.TEMPORARY_PATH, site.database + '.sql')
                                          ))
