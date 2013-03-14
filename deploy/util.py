@@ -30,7 +30,26 @@ def parse_log(output):
         output = output.replace(token,'').strip()
     output = output.replace('  ',' ')
     return output.strip()
-    
+
+def _local_cmd(cmd):
+    """ just a lazy wrapper for popen, but follows the same pattern as _remote_ssh."""    
+    logger.info("_local_cmd: %s" % (' '.join(cmd),) )
+
+    process = subprocess.Popen(cmd,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT)
+    output,stderr = process.communicate()
+    status = process.poll()
+
+    if not status == 0:
+        logger.info("_local_cmd: command output: %s" % (output,))
+        logger.info("_local_cmd: command error: %s" % (stderr,))
+
+    t = datetime.datetime.now() - begin
+    logger.info("_local_cmd: took %d seconds. exit status %d." % ( t.seconds,status))
+        
+    return (status,output,stderr)
+
 
 def _remote_ssh(platform, cmd):
     """ returns tuple of (exit status, stdout, sdterr) """

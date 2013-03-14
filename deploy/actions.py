@@ -2,7 +2,7 @@ from celery.task import task
 from django.conf import settings
 from deploy.util import parse_vget, parse_status, parse_log
 from deploy.util import _remote_ssh, _remote_drush, _rsync_pull, _rsync_push, _check_site
-from deploy.util import _remote_mysql
+from deploy.util import _remote_mysql, _local_cmd
 from deploy.models import Site, Platform, Event, Statistic
 
 import celery.result
