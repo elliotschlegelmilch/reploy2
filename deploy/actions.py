@@ -394,15 +394,23 @@ def migrate(site, new_platform):
     _remote_ssh(new_platform,
                  "rm %s" % (os.path.join(settings.TEMPORARY_PATH,tarball),))
     
-
     #create and fill database
-    #todo: stage database + replacements first.
     _create_site_database(dest_site)
-    (status, out, err) = _remote_ssh(dest_site.platform,
-                                     'mysql -v %s < %s' % (
-                                         dest_site.database,
-                                         os.path.join(settings.TEMPORARY_PATH, site.database + '.sql')
-                                         ))
+
+
+    #extract the sql dump out of the tarball locally.
+    _local_cmd("tar -zxvf %s -C %s ./%s" %( tarball_path, settings.TEMPORARY_PATH,  site.database + '.sql'))
+    _local_cmd("mysql -h %s < %s" %( site.platform.database, os.path.join(settings.TEMPORARY_PATH, site.database + '.sql'))
+
+    #todo: stage database + replacements first.
+    # this now hangs, so I'm attempting to connect to the databaes directly.
+    # (status, out, err) = _remote_ssh(dest_site.platform,
+    #                                  'mysql -n -v -v %s < %s' % (
+    #                                      dest_site.database,
+    #                                      remote_sql_path))
+
+    _remote_ssh(new_platform,
+                "rm %s" % (remote_sql_path,))
 
     #rename sitedir to the correct thing.
     _remote_ssh(new_platform, "mv %s %s" % (
