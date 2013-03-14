@@ -409,9 +409,6 @@ def migrate(site, new_platform):
     #                                      dest_site.database,
     #                                      remote_sql_path))
 
-    _remote_ssh(new_platform,
-                "rm %s" % (remote_sql_path,))
-
     #rename sitedir to the correct thing.
     _remote_ssh(new_platform, "mv %s %s" % (
                     os.path.join(new_platform.path,'sites',site.files_dir),
