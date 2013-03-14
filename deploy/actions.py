@@ -245,6 +245,7 @@ def backup(site):
     logger.info('backup: local temporary_path=%s' % (path,))
 
     status = 1
+    cacheclear(site);
 
     db = _backup_db(site,path)
     fs = _backup_files(site,path)
