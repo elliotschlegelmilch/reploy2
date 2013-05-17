@@ -94,7 +94,7 @@ def verify(site):
 
         (status, extra, err) = _remote_drush(site, "vget site_name_extra")
         if status == 0:
-            site.long_name += " " + parse_vget('site_name_extra', extra) 
+            site.long_name += ": " + parse_vget('site_name_extra', extra) 
 
         site.set_flag('ok')
         site.unset_flag('unqueried')
