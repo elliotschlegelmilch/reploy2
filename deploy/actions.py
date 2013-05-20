@@ -400,7 +400,7 @@ def migrate(site, new_platform):
 
     #extract the sql dump out of the tarball locally.
     _local_cmd("tar -zxvf %s -C %s ./%s" %( tarball_path, settings.TEMPORARY_PATH,  site.database + '.sql'))
-    _local_cmd("mysql -h %s < %s" %( site.platform.database, os.path.join(settings.TEMPORARY_PATH, site.database + '.sql'))
+    _local_cmd("mysql -h %s < %s" %( site.platform.database, os.path.join(settings.TEMPORARY_PATH, site.database + '.sql')))
 
     #todo: stage database + replacements first.
     # this now hangs, so I'm attempting to connect to the databaes directly.
