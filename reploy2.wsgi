@@ -7,7 +7,7 @@ workspace = os.path.dirname(project)
 sys.path.append(workspace) 
 sys.path.append('/var/www/reploy2')
 
-os.environ['DJANGO_SETTINGS_MODULE'] = 'deploy.settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'deploy.settings-prod'
 
 import django.core.handlers.wsgi
 application = django.core.handlers.wsgi.WSGIHandler()
