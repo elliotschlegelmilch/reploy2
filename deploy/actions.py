@@ -663,8 +663,6 @@ def create(site, force=False):
                 return (False, str(output) + str(err) )
 
             else:
-                print output
-                print err
                 logger.error("create(): create site failed. %s" %(output,))
         else:
             logger.error("create(): create sitedirs failed")
