@@ -39,7 +39,7 @@ def check_platform(platform):
 def reconcile_sites_dirs(platform):
 
     cmd = "ls %s/sites/" % (platform.path,)
-    (status, out, err) = _remote_ssh(platfrom, cmd)
+    (status, out, err) = _remote_ssh(platform, cmd)
 
     paths = out.split('\n')
     sites= Site.objects.filter(platform=platform)
