@@ -46,7 +46,7 @@ def reconcile_sites_dirs(platform):
 
     for site in sites:
 	if site.files_dir in paths:
-            paths.remove(x)
+            paths.remove(site)
 
     return(True, 'Unaccounted for directories: %s' %(' \n'.join(paths),))
 
@@ -65,7 +65,7 @@ def reconcile_sites_databases(platform):
             site = Site.objects.filter(database=database, platform=platform)
             if len(site) ==0:
                 unknown_databases.append(database)
-        return(True, 'Unaccounted for databases: %s' %(' \n'.join(unknonw_databases),))
+        return(True, 'Unaccounted for databases: %s' %(' \n'.join(unknown_databases),))
     else:
         return(False, 'Could not retrieve list of databases.')
 
