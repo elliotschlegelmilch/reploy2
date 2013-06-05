@@ -29,14 +29,14 @@ class SiteAdmin(admin.ModelAdmin):
             event = Event( task_id=ctask.task_id, site=site, user=request.user, event="online")
             event.save()
             messages.add_message(request, messages.INFO, "%s has been submitted to be removed from maintenance: %s" % ( site, ctask.task_id) )
-                
+
     def site_offline(self, request, queryset):
         for site in queryset:
             ctask = disable.delay(site)
             event = Event( task_id=ctask.task_id, site=site, user=request.user, event="offline")
             event.save()
             messages.add_message(request, messages.INFO, "%s has been submitted to be entered into maintenance: %s" % ( site, ctask.task_id) )
-                
+
     def site_verify(self, request,queryset):
          for site in queryset:
              ctask = verify.delay(site)
@@ -78,7 +78,7 @@ class SiteAdmin(admin.ModelAdmin):
             event = Event( task_id=ctask.task_id, site=site, user=request.user, event='cacheclear')
             event.save()
             messages.add_message(request, messages.INFO, "The cache of site %s has been cleared: %s" % ( site, ctask.task_id) )
- 
+
     def site_migrate(self, request, queryset):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         ct = ContentType.objects.get_for_model(queryset.model)
@@ -93,8 +93,8 @@ class SiteAdmin(admin.ModelAdmin):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         ct = ContentType.objects.get_for_model(queryset.model)
         return HttpResponseRedirect("/site-drush?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
-                     
-        
+
+
     site_backup.short_description     = 'Backup.'
     site_cacheclear.short_description = 'Cache clear.'
     site_create.short_description     = 'Install.'
@@ -109,7 +109,7 @@ class EventAdmin(admin.ModelAdmin):
     list_display = ['site','event','user','date','status','message','task_id']
     list_filter = ['user','status', 'event']
     list_display_links = ['task_id']
-    
+
 admin.site.register(Site,SiteAdmin)
 admin.site.register(Platform)
 admin.site.register(Status)

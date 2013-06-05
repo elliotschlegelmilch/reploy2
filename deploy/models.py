@@ -63,7 +63,7 @@ class Statistic(models.Model):
     value   = models.CharField(max_length=128, blank=False, null=True)
 
     def __unicode__(self):
-        return "<%s %s:%s>" %( self.site, self.metric, self.value)
+        return "<%s %s:%s>" % (self.site, self.metric, self.value)
 
 class Event(models.Model):
     site    = models.ForeignKey('Site')

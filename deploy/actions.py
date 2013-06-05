@@ -36,6 +36,46 @@ def check_platform(platform):
 
     return ok
 
+def reconcile_sites_dirs(platform):
+
+    cmd = "ls %s/sites/" % (platform.path,)
+    (status, out, err) = _remote_ssh(platfrom, cmd)
+
+    paths = out.split('\n')
+    sites= Site.objects.filter(platform=platform)
+
+    for site in sites:
+	if site.files_dir in paths:
+            paths.remove(x)
+
+    return(True, 'Unaccounted for directories: %s' %(' \n'.join(paths),))
+
+def reconcile_sites_databases(platform):
+
+    _ignored_databases = ['information_schema', 'mysql', '_reploy2', '_reploy2_results']
+
+    cmd = 'mysql -ss -e "%s"' % ('show databases;',)
+    (status, out,err) = _remote_ssh(platform, cmd)
+
+    unknown_databases = []
+
+    if status == 0:
+        dbs = filter(None, [ (i if i not in _ignored_databases else None) for i in out.split('\n')])
+        for database in dbs:
+            site = Site.objects.filter(database=database, platform=platform)
+            if len(site) ==0:
+                unknown_databases.append(database)
+        return(True, 'Unaccounted for databases: %s' %(' \n'.join(unknonw_databases),))
+    else:
+        return(False, 'Could not retrieve list of databases.')
+
+@task
+def reconcile_sites(platform):
+    """ query/inventory unaccounted for sites/databases."""
+
+    reconsile_sites_dirs(platform)
+    reconcile_sites_databases(platform)
+
 
 def update_events():
     """ update deployment event statuses. purge ones 7 days old."""
@@ -86,6 +126,7 @@ def verify(site):
 
     (status, out, err) = _remote_drush(site, "vget maintenance_mode")
 
+    site.unset_flag('error')
     site.unset_flag('unqueried')
 
     (status, out, err) = _remote_drush(site, "vget site_name")
