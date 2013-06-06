@@ -46,7 +46,7 @@ def reconcile_sites_dirs(platform):
 
     for site in sites:
 	if site.files_dir in paths:
-            paths.remove(site)
+            paths.remove(site.files_dir)
 
     return(True, 'Unaccounted for directories: %s' %(' \n'.join(paths),))
 
