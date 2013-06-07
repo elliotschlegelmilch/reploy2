@@ -53,16 +53,16 @@ def _local_cmd(cmd):
 
 def _remote_ssh(platform, cmd):
     """ returns tuple of (exit status, stdout, sdterr) """
-    
+
     #logger.info("_remote_ssh: enter")
     begin = datetime.datetime.now()
     remote_cmd = ['ssh', platform.ssh_host, cmd]
-    logger.info("_remote_ssh: %s" % (' '.join(remote_cmd),) )
+    logger.info("_remote_ssh: %s" % (' '.join(remote_cmd),))
 
     process = subprocess.Popen(remote_cmd,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT)
-    output,stderr = process.communicate()
+    output, stderr = process.communicate()
     status = process.poll()
 
     if not status == 0:

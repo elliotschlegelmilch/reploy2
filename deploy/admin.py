@@ -1,27 +1,25 @@
 from django.contrib import admin, messages
 from django.contrib.contenttypes.models import ContentType
-from django.core import serializers
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 
 from deploy.models import Platform, Site, Status, Event, Statistic
 from deploy.actions import verify, create, enable, disable, wipe_site, cacheclear, backup
 
 
 class SiteAdmin(admin.ModelAdmin):
-    list_display = ['link', 'short_name','long_name', 'contact_email',
-                    'last_event','show_status','manage' ]
+    list_display = ['link', 'short_name', 'long_name', 'contact_email',
+                    'last_event', 'show_status', 'manage']
     list_filter = ['platform', 'user', 'status']
     list_display_links = ['short_name']
     search_fields = ['long_name', 'short_name']
-    ordering = ['long_name', 'short_name' ]
+    ordering = ['long_name', 'short_name']
     actions = [
         # no interaction
         'site_online', 'site_offline', 'site_verify', 'site_create',
         'site_cacheclear', 'site_wipe', 'site_backup',
         # views
-        'site_migrate', 'site_drush', 'site_rename'
-        ]
-#    exclude =['status']
+        'site_migrate', 'site_drush', 'site_rename']
+                #    exclude =['status']
 
     def site_online(self, request, queryset):
         for site in queryset:
@@ -61,7 +59,7 @@ class SiteAdmin(admin.ModelAdmin):
     def site_backup(self,request, queryset):
         for site in queryset:
             ctask = backup.delay(site)
-            event = Event( task_id=ctask.task_id, site=site, user=request.user, event='backup')           
+            event = Event( task_id=ctask.task_id, site=site, user=request.user, event='backup')
             event.save()
             messages.add_message(request, messages.INFO, "%s has been submitted to be backuped: %s" % ( site, ctask.task_id) )
 
