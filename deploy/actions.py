@@ -38,6 +38,8 @@ def check_platform(platform):
 
 def reconcile_sites_dirs(platform):
 
+    _ignored_files = [ "%s.php" %( platform.host,), 'http_host.pdx.edu.php', 'default']
+
     cmd = "ls %s/sites/" % (platform.path,)
     (status, out, err) = _remote_ssh(platform, cmd)
 
@@ -47,6 +49,10 @@ def reconcile_sites_dirs(platform):
     for site in sites:
 	if site.files_dir in paths:
             paths.remove(site.files_dir)
+
+    for i in _ignored_files:
+        if i in paths:
+            paths.remove(i)
 
     return(True, 'Unaccounted for directories: %s' %(' \n'.join(paths),))
 
