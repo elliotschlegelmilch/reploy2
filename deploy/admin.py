@@ -108,8 +108,15 @@ class EventAdmin(admin.ModelAdmin):
     list_filter = ['user','status', 'event']
     list_display_links = ['task_id']
 
+class PlatformAdmin(admin.ModelAdmin):
+    list_display = ['name','host','use','database']
+    actions = ['download_csv',]
+
+    def download_csv(self, request, queryset):
+        return HttpResponseRedirect('/platform-status/%s' % (queryset[0].name,))
+
 admin.site.register(Site,SiteAdmin)
-admin.site.register(Platform)
+admin.site.register(Platform,PlatformAdmin)
 admin.site.register(Status)
 admin.site.register(Event,EventAdmin)
 admin.site.register(Statistic)
