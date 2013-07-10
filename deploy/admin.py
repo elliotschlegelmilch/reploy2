@@ -115,6 +115,8 @@ class PlatformAdmin(admin.ModelAdmin):
     def download_csv(self, request, queryset):
         return HttpResponseRedirect('/platform-status/%s' % (queryset[0].name,))
 
+    download_csv.short_description = "Download CSV"
+
 admin.site.register(Site,SiteAdmin)
 admin.site.register(Platform,PlatformAdmin)
 admin.site.register(Status)
