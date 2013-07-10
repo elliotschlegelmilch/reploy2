@@ -93,15 +93,15 @@ class SiteAdmin(admin.ModelAdmin):
         return HttpResponseRedirect("/site-drush?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
 
 
-    site_backup.short_description     = 'Backup.'
-    site_cacheclear.short_description = 'Cache clear.'
-    site_create.short_description     = 'Install.'
-    site_drush.short_description      = 'Drush.'
-    site_offline.short_description    = 'Enable.'
-    site_online.short_description     = 'Disable.'
-    site_restore.short_descriptiono   = 'Restore.'
-    site_verify.short_description     = 'Verify.'
-    site_wipe.short_description       = 'Wipe out.'
+    site_backup.short_description     = 'Backup'
+    site_cacheclear.short_description = 'Cache clear'
+    site_create.short_description     = 'Install'
+    site_drush.short_description      = 'Drush'
+    site_offline.short_description    = 'Enable'
+    site_online.short_description     = 'Disable'
+    site_restore.short_descriptiono   = 'Restore'
+    site_verify.short_description     = 'Verify'
+    site_wipe.short_description       = 'Wipe out'
 
 class EventAdmin(admin.ModelAdmin):
     list_display = ['site','event','user','date','status','message','task_id']
