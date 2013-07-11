@@ -34,7 +34,7 @@ def parse_log(output):
 def _local_cmd(cmd):
     """ just a lazy wrapper for popen, but follows the same pattern as _remote_ssh."""    
     logger.info("_local_cmd: %s" % (' '.join(cmd),) )
-
+    begin = datetime.datetime.now()
     process = subprocess.Popen(cmd,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT)
