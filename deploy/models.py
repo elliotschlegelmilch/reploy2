@@ -66,7 +66,7 @@ class Statistic(models.Model):
         return "<%s %s:%s>" % (self.site, self.metric, self.value)
 
 class Event(models.Model):
-    site    = models.ForeignKey('Site')
+    site    = models.ForeignKey('Site', blank=True)
     event   = models.CharField(max_length=36, blank=True)
     user    = models.ForeignKey(User, null=True, blank=True)
     date    = models.DateTimeField(db_index=True, auto_now=True)
