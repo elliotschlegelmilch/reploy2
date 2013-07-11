@@ -145,7 +145,9 @@ def _check_site(site):
     try:
         urllib2.urlopen(req)
     except urllib2.URLError, e:
+        http_status = 550
+    except urllib2.HTTPError, e:
         http_status = e.code
-        logger.critical('_check_site: site=%s httpstatus=%d' % (str(site),http_status))
+    logger.critical('_check_site: site=%s httpstatus=%d' % (str(site),http_status))
         
     return http_status

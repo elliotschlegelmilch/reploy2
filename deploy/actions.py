@@ -130,16 +130,21 @@ def drush(site, cmd):
 @task
 def verify(site):
 
+    _out = ''  
+
     (status, out, err) = _remote_drush(site, "vget maintenance_mode")
+    _out += out
 
     site.unset_flag('error')
     site.unset_flag('unqueried')
 
     (status, out, err) = _remote_drush(site, "vget site_name")
+    _out += out
     if status == 0:
         site.long_name = parse_vget('site_name', out)
 
         (status, extra, err) = _remote_drush(site, "vget site_name_extra")
+        _out += extra
         if status == 0:
             site.long_name += ": " + parse_vget('site_name_extra', extra) 
 
@@ -164,36 +169,45 @@ def verify(site):
         site.save()
 
     (status, out, err) = _remote_drush(site, "vget site_mail")
+    _out += out
     if status == 0:
         site.contact_email = parse_vget('site_mail', out)
         site.save()
     else:
         site.set_flag('error')
         site.save()
-        return (False, "Problem fetching drupal variable site_mail.")
 
     #TODO: possibly could need to flush varnish first before checking.
     status = _check_site(site)
-    if status == 500 or status == 503:
+    if status == 500 or status > 500:
         site.set_flag('error')
     if status == 404:
         site.set_flag('not installed')
     if not status == 200:
         site.unset_flag('ok')
         site.save()
-        return (False, "The site returned the code of: %d." %(status,) )
-
-    (status, out, err) = _remote_drush(site, "status")
-    if status == 0:
-        db = parse_status('Database name', out)
-        logger.error('verify: updating database from %s to %s for site %s.' %(
-            site.database, db, str(site)))
-        site.database = db
-        site.save()
+    else:
+        (status, out, err) = _remote_drush(site, "status")
+        if status == 0:
+            db = parse_status('Database name', out)
+            logger.error('verify: updating database from %s to %s for site %s.' %(
+                    site.database, db, str(site)))
+            site.database = db
+            site.save()
 
     # if we're this far, profile the site. asynchronously.
     get_site_status.delay(site)
     
+    #create a log entry.
+    if not verify.request.called_directly:
+      event = Event(  site=site, 
+                      event='verify',
+                      #user=request.user, 
+                      task_id=verify.request.id, 
+                      status='',
+                      message = _out,
+                      )
+      event.save()
     return (True, "This command completed sucessfully.")
     
 @task       
