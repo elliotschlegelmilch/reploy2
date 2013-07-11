@@ -264,12 +264,7 @@ def _backup_db(site, path):
 
 def _backup_files(site, path):
     (s,o,e) = _rsync_pull(site.platform, site.site_dir(), path)
-    if s == 0:
-        return True
-    else:
-        print e
-        print o
-        return False
+    return s == 0
 
 def _db_replace(old_site, new_site):
 
