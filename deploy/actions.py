@@ -456,8 +456,8 @@ def migrate(site, new_platform):
 
     #extract the sql dump out of the tarball locally.
     _local_cmd(['tar','-zxvf', tarball_path, '-C',  settings.TEMPORARY_PATH, './' + site.database + '.sql'])
-    _local_cmd(['mysql','-h', site.platform.database,
-                '-e','\. %s' % ( os.path.join(settings.TEMPORARY_PATH, site.database + '.sql'),),
+    _local_cmd(['mysql','-h', dest_site.platform.database,
+                '-e','\. %s' % ( os.path.join(settings.TEMPORARY_PATH, dest_site.database + '.sql'),),
                 site.database
                 ])
 
