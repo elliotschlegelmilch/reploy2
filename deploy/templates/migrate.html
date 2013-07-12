@@ -2,8 +2,8 @@
 {% load i18n %}
 
 {% block extrastyle %}
-{% load adminmedia %}
-  <link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/forms.css" />
+{% load staticfiles %}
+  <link rel="stylesheet" type="text/css" href="{% static 'css/forms.css' %}" />
 <style>
 #header{ background-color: #333940; border-bottom: solid 3px #999; }
 #branding h1{ color: #fff; }
