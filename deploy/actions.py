@@ -82,26 +82,6 @@ def reconcile_sites(platform):
     reconsile_sites_dirs(platform)
     reconcile_sites_databases(platform)
 
-
-def update_events():
-    """ update deployment event statuses. purge ones 7 days old."""
-    
-    events = Event.objects.filter(status = None)
-
-    for event in events:
-        task = celery.result.AsyncResult( event.task_id )
-        if task.ready() and not event.is_statistic:
-            if isinstance(task.result, tuple):
-                event.status, event.message = task.result
-            else:
-                #exception :(
-                event.status = False
-                event.message = task.result
-            event.save()
-
-    purge_time = datetime.datetime.now() - datetime.timedelta(7,0,0)
-    Event.objects.filter(date__lte = purge_time).delete()
-
 def update_statistic():
     i = 0
     for event in Event.objects.filter(status = None):

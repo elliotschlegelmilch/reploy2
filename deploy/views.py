@@ -1,4 +1,4 @@
-from deploy.actions import migrate, rename, drush, update_events, update_statistic, \
+from deploy.actions import migrate, rename, drush, update_statistic, \
      get_site_status, enable, disable, cacheclear, verify, varnishclear
 
 from deploy.forms import Migrate, Clone, Drush
@@ -66,10 +66,6 @@ def site_manage(request, sid):
             )
          
 
-
-
-
-    update_events()
     update_statistic()
     
     data = {'events'    : events,
