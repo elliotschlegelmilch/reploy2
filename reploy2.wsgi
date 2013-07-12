@@ -5,6 +5,7 @@ apache_configuration= os.path.dirname(__file__)
 project = os.path.dirname(apache_configuration)
 workspace = os.path.dirname(project)
 sys.path.append(workspace) 
+sys.path.append('/var/www/reploy2/deploy')
 sys.path.append('/var/www/reploy2')
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'deploy.settings-prod'
