@@ -82,26 +82,6 @@ def reconcile_sites(platform):
     reconsile_sites_dirs(platform)
     reconcile_sites_databases(platform)
 
-def update_statistic():
-    i = 0
-    for event in Event.objects.filter(status = None):
-        task = celery.result.AsyncResult( event.task_id )
-        if task.ready() and event.is_statistic:
-            try:
-                d = task.result
-                for m in d:
-                    i = i + 1
-                    s = Statistic( site   = event.site,
-                                   date   = event.date,
-                                   metric = m,
-                                   value  = d[m]
-                                   )
-                    s.save()
-            except:
-                pass
-            event.delete() 
-    return i
-
 @task
 def drush(site, cmd):
     (status, out, err) = _remote_drush(site, cmd)
