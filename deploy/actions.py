@@ -85,6 +85,19 @@ def reconcile_sites(platform):
 @task
 def drush(site, cmd):
     (status, out, err) = _remote_drush(site, cmd)
+    logger.debug("drush: %s" %(out,))
+    logger.debug("drush: %s" %(err,))
+
+    event = Event(  site=site, 
+                    event='drush',
+                    #user=request.user, 
+                    task_id=drush.request.id, 
+                    status= status==0,
+                    message = "%s" %( out, ), # + "\n\n" + err,
+                    )
+    event.save()
+
+
     return (status==0, "%s\n%s" %(str(out), str(err)))
 
 @task
@@ -270,6 +283,15 @@ def backup(site):
         logger.info('backup: _backup_db was %s' % (str(db),) )
         logger.info('backup: _backup_fs was %s' % (str(fs),) )
         shutil.rmtree(path)
+        if not backup.request.called_directly:
+            event = Event(site=site, 
+                          event='backup',
+                          #user=request.user, 
+                          task_id=backup.request.id, 
+                          status=False,
+                          message = '',
+                          )
+            event.save()
         return (False, "Backup didn't complete.")
                 
     site_name = site.platform.host + '.' + site.short_name
@@ -293,10 +315,16 @@ def backup(site):
     except:
         logger.critical("backup: oops; can't delete: %s" % (path,))
 
-    if status == 0:
-        return (True, "backup is %s" %(friendly_backup_path,))
-
-    return (False, output)
+    if not backup.request.called_directly:
+      event = Event(site=site, 
+                    event='backup',
+                    #user=request.user, 
+                    task_id=backup.request.id, 
+                    status=status==0,
+                    message = _out,
+                    )
+      event.save()
+    return ( status==0, "backup is %s" %(friendly_backup_path,))
 
 def _find_backup_file(site):
     """returns the most recent backup tarball."""
@@ -742,15 +770,10 @@ def get_celery_worker_status():
 
 @task
 def get_site_status(site):
-    result = {}
-    
-    du = get_site_du(site)
-    nc = get_node_count(site)
-    cr = get_cron_last(site)
-
-    result.update(du)
-    result.update(nc)
-    result.update(cr)
+    get_site_du(site)
+    get_node_count(site)
+    get_cron_last(site)
+    get_file_counts(site)
 
     return result
 
@@ -767,12 +790,18 @@ def get_site_du(site):
         locale.setlocale(locale.LC_ALL, '')
         s = locale.format("%d", kilobytes/1024, grouping=True) + ' megabytes'
         
+        x = Statistic(site=site, metric='disk_usage', value=s)
+        x.save()
+                      
         return {'disk_usage': s}
     return {}
 
 def get_node_count(site):
     out = _remote_mysql(site, "select count(distinct nid) as nodes from node;")
     if not out == None:
+        x = Statistic(site=site, metric='node_count', value=int(out))
+        x.save()
+        
         return {'node_count': int(out) }
     return {}
     
@@ -782,7 +811,25 @@ def get_cron_last(site):
     if cron_last:
         t = datetime.datetime.fromtimestamp(float(cron_last))
         time_format = t.strftime(settings.TIME_FORMAT)
+        x = Statistic(site=site, metric='cron_last', value=time_format)
+        x.save()
+
         return {'cron_last': time_format }
     else:
         return {}
     
+def get_file_counts(site):
+    out = _remote_mysql(site, "select count(*) as f from file_managed;")
+    if not out == None:
+        x = Statistic(site=site, metric='file_managed', value=int(out))
+        x.save()
+
+    out = _remote_mysql(site, "select count(*) as f from file_usage;")
+    if not out == None:
+        x = Statistic(site=site, metric='file_used', value=int(out))
+        x.save()
+        
+        
+    
+
+

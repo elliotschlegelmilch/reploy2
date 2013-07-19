@@ -115,6 +115,8 @@ SESSION_COOKIE_NAME = 'NO_CACHE'
 TEMPLATE_DIRS = (
     'templates',
     'templates/admin',
+    '/var/www/reploy2/deploy/templates',
+
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.

@@ -109,7 +109,7 @@ def _remote_mysql(site, query):
 
 def _rsync_pull(platform, remote, local):
     path = "%s:%s" % (platform.ssh_host, remote)
-    cmd = ['rsync','--archive', '--numeric-ids', '-pv', path, local]
+    cmd = ['rsync','--archive', '--numeric-ids', '-pvv', path, local]
     logger.info("_rsync_pull: from %s remote=%s local=%s" % ( platform, remote, local))
     begin = datetime.datetime.now()
     process = subprocess.Popen(cmd,
@@ -124,7 +124,7 @@ def _rsync_pull(platform, remote, local):
 def _rsync_push(platform, local, remote):
     logger.info("_rsync_push: to %s remote=%s local=%s" % ( platform, remote, local))
     path = "%s:%s" % (platform.ssh_host, remote)
-    cmd = ['rsync','--archive', '--numeric-ids', '-pv', local, path]
+    cmd = ['rsync','--archive', '--numeric-ids', '-pvv', local, path]
     begin = datetime.datetime.now()
     process = subprocess.Popen(cmd,
                                stdout=subprocess.PIPE,

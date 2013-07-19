@@ -119,8 +119,6 @@ def site_drush(request):
         cmd = request.POST['drush_command']
         for site in sites:
             ctask = drush.delay(site, cmd)
-            event = Event( task_id=ctask.task_id, site=site, user=request.user, event='drush')
-            event.save()
             messages.add_message(request, messages.INFO, "The drush command on the site %s has been queued: %s" % ( site, ctask.task_id) )
 
         # this needs to redirect or something.
