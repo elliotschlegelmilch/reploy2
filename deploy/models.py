@@ -87,7 +87,7 @@ class Event(models.Model):
 
 class Site(models.Model):
     long_name        = models.CharField(max_length=256, blank=True, help_text='this is the site name' )
-    short_name       = models.CharField(max_length=32, null=False, blank=False, help_text='this is the site name, e.g.: foo to create the site www.example.org/foo')
+    short_name       = models.CharField(max_length=50, null=False, blank=False, help_text='this is the site name, e.g.: foo to create the site www.example.org/foo')
     platform         = models.ForeignKey(Platform, help_text='Which platform should this site be created.')
     database         = models.CharField(max_length=32, null=False, blank=True)
     profile          = models.CharField(max_length=20, null=False, default='psu_primary',
