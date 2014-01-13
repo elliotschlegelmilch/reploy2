@@ -111,6 +111,7 @@ def _rsync_pull(platform, remote, local):
     path = "%s:%s" % (platform.ssh_host, remote)
     cmd = ['rsync','--archive', '--numeric-ids', '-pvv', path, local]
     logger.info("_rsync_pull: from %s remote=%s local=%s" % ( platform, remote, local))
+    logger.info("_rsync_pull: %s" % ( ' '.join(cmd),))
     begin = datetime.datetime.now()
     process = subprocess.Popen(cmd,
                                stdout=subprocess.PIPE,
@@ -125,6 +126,7 @@ def _rsync_push(platform, local, remote):
     logger.info("_rsync_push: to %s remote=%s local=%s" % ( platform, remote, local))
     path = "%s:%s" % (platform.ssh_host, remote)
     cmd = ['rsync','--archive', '--numeric-ids', '-pvv', local, path]
+    logger.info("_rsync_push: %s" % ( ' '.join(cmd),))
     begin = datetime.datetime.now()
     process = subprocess.Popen(cmd,
                                stdout=subprocess.PIPE,
