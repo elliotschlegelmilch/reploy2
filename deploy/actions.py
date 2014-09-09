@@ -691,7 +691,7 @@ def create(site, force=False):
             settings = _create_settings_php(site)
 
             if settings:
-                install_status, output, err = _remote_drush(site, "site-install -y --site-name='%s' --sites-subdir='%s' --site-email='%s' %s"
+                install_status, output, err = _remote_drush(site, "site-install -y --site-name='%s' --sites-subdir='%s' --site-mail='%s' %s"
                                                         %( site.long_name,
                                                            'default' if site.short_name == 'default' else site.platform.host + '.' +  site.short_name,
                                                            site.contact_email,
