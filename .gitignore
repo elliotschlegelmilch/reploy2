@@ -1,4 +1,5 @@
 *.pyc
 deploy/settings.py*
+celeryconfig.py*
 #so; i'm a lazy emacs user.
 *~
