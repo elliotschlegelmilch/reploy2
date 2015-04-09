@@ -234,8 +234,7 @@ $_db  = '%(database)s';
 $_dir = '%(sitedir)s'; 
 $install = %(install)s;
 
-$_inc = '%(inc)s';
-require_once($_inc);
+require('sites/settings.php');
 
 #do not modify this line: local changes below this point
 
