@@ -102,8 +102,6 @@ class Site(models.Model):
                                              ))
 
     contact_email    = models.CharField(max_length=64, help_text='this populates the site_admin field of the site')
-    user             = models.ForeignKey(User)
-
     status           = models.ManyToManyField(Status, blank=True)
 
     def save(self, *args, **kwargs):
