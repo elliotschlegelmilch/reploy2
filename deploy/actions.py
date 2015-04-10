@@ -775,7 +775,7 @@ def get_site_status(site):
     get_cron_last(site)
     get_file_counts(site)
 
-    return result
+    return True
 
 
 
