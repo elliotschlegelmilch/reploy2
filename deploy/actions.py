@@ -179,7 +179,7 @@ def verify(site):
                     status='',
                     message = _out,
                     )
-      event.save()
+    event.save()
     return (True, "This command completed sucessfully.")
     
 @task       
