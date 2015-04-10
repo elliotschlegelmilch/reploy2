@@ -172,14 +172,13 @@ def verify(site):
     get_site_status.delay(site)
     
     #create a log entry.
-    if not verify.request.called_directly:
-      event = Event(  site=site, 
-                      event='verify',
-                      #user=request.user, 
-                      task_id=verify.request.id, 
-                      status='',
-                      message = _out,
-                      )
+    event = Event(  site=site, 
+                    event='verify',
+                    #user=request.user, 
+                    task_id=verify.request.id, 
+                    status='',
+                    message = _out,
+                    )
       event.save()
     return (True, "This command completed sucessfully.")
     

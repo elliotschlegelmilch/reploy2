@@ -11,7 +11,9 @@ def parse_vget(variable, output):
     for line in output.split('\n'):
         if line.find(variable + ':') > -1:
             quoted = line.replace(variable + ':','').strip()
-            return quoted.strip('"')
+            quoted = quoted.strip("'")
+            quoted = quoted.strip('"')
+            return quoted
     return False
 
 def parse_status(variable, output):
