@@ -9,7 +9,7 @@ from deploy.actions import verify, create, enable, disable, wipe_site, cacheclea
 class SiteAdmin(admin.ModelAdmin):
     list_display = ['link', 'short_name', 'long_name', 'contact_email',
                     'last_event', 'show_status', 'manage']
-    list_filter = ['platform', 'user', 'status']
+    list_filter = ['platform', 'status']
     list_display_links = ['short_name']
     search_fields = ['long_name', 'short_name']
     ordering = ['long_name', 'short_name']
