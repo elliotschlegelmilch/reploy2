@@ -24,14 +24,14 @@ class SiteAdmin(admin.ModelAdmin):
     def site_online(self, request, queryset):
         for site in queryset:
             ctask = enable.delay(site)
-            event = Event( task_id=ctask.task_id, site=site, user=request.user, event="online")
+            event = Event( task_id=ctask.task_id, site=site,  event="online")
             event.save()
             messages.add_message(request, messages.INFO, "%s has been submitted to be removed from maintenance: %s" % ( site, ctask.task_id) )
 
     def site_offline(self, request, queryset):
         for site in queryset:
             ctask = disable.delay(site)
-            event = Event( task_id=ctask.task_id, site=site, user=request.user, event="offline")
+            event = Event( task_id=ctask.task_id, site=site, event="offline")
             event.save()
             messages.add_message(request, messages.INFO, "%s has been submitted to be entered into maintenance: %s" % ( site, ctask.task_id) )
 
@@ -92,8 +92,8 @@ class SiteAdmin(admin.ModelAdmin):
     site_wipe.short_description       = 'Wipe out'
 
 class EventAdmin(admin.ModelAdmin):
-    list_display = ['site','event','user','date','status','message','task_id']
-    list_filter = ['user','status', 'event']
+    list_display = ['site','event','date','status','message','task_id']
+    list_filter = ['status', 'event']
     list_display_links = ['task_id']
 
 class PlatformAdmin(admin.ModelAdmin):
@@ -108,7 +108,7 @@ class PlatformAdmin(admin.ModelAdmin):
 admin.site.register(Site,SiteAdmin)
 admin.site.register(Platform,PlatformAdmin)
 admin.site.register(Status)
-admin.site.register(Event,EventAdmin)
+#admin.site.register(Event,EventAdmin)
 admin.site.register(Statistic)
 
 
