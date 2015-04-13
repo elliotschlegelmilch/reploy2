@@ -68,7 +68,6 @@ class Statistic(models.Model):
 class Event(models.Model):
     site    = models.ForeignKey('Site', blank=True)
     event   = models.CharField(max_length=36, blank=True)
-    user    = models.ForeignKey(User, null=True, blank=True)
     date    = models.DateTimeField(db_index=True, auto_now=True)
     status  = models.NullBooleanField(default=None)
     message = models.TextField(null=True)
