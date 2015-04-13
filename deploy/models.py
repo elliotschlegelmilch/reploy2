@@ -74,7 +74,7 @@ class Event(models.Model):
     task_id = models.CharField(max_length=36, primary_key=True, default=uuid.uuid1 )
 
     def __unicode__(self):
-        return "%s did %s to %s and the result was %s (%s)" % ( self.user, self.event, self.site, self.status, self.task_id)
+        return "%s happened to %s and the result was %s (%s)" % ( self.event, self.site, self.status, self.task_id)
 
     @property
     def is_statistic(self):
